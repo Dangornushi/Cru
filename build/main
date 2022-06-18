@@ -1,0 +1,10 @@
+int sub (int x) {
+	x = x/6;
+	return x; 
+}int main () {
+	int s = sub(12);
+	return s; 
+}
+int start(void) {
+	return main();
+}
