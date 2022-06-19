@@ -26,15 +26,17 @@ string Node::addIndent() {
 
 
 string Node::addSub() {
+	string ret = mulDiv();
+
 	if (token[tokNumCounter+1].tokNum == PLUS) {
-		string s1 = mulDiv();
+		//string s1 = mulDiv();
 		tokNumCounter += 2;
 		string s2 = mulDiv();
 		//tokNumCounter++;
-        if (!isDigit(s1) && !isDigit(s2)) {
-            return std::to_string(std::stoi(s1) + std::stoi(s2));
+        if (!isDigit(ret) && !isDigit(s2)) {
+            return std::to_string(std::stoi(ret) + std::stoi(s2));
         }
-		return s1 + "+" + s2;
+		return ret + "+" + s2;
 	}
 	if (token[tokNumCounter+1].tokNum == MIN) {
 		string s1 = mulDiv();
@@ -46,7 +48,8 @@ string Node::addSub() {
         }
 		return s1 + "-" + s2;
 	}
-	return mulDiv();
+
+	return ret;
 }
 
 string Node::mulDiv() {
@@ -105,5 +108,25 @@ string Node::comparison(int i, string ret) {
 		return ret;
 	}
 	return ret+comparison(i+1, token[i+1].tokChar);
+}
+
+
+string Node::loop() {
+	string doValue = "";
+	string iterate_1;
+	string iterate_2;
+
+	doValue = word();
+	tokNumCounter++;
+	expect("in");
+	tokNumCounter++;
+	iterate_1 = addSub();
+	tokNumCounter++;
+	expect("~");
+	tokNumCounter++;
+	iterate_2 = addSub();
+	tokNumCounter++;
+
+	return "int " + doValue + " = 0; " + doValue + " < " + iterate_2 + "; "+ doValue + "++";
 }
 

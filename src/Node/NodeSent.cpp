@@ -74,7 +74,7 @@ string Node::sent() {
             expect("{");
             tokNumCounter++;
             indent++;
-            ret += sent(); 
+            ret += sent();
             indent--;
             expect("}");
             tokNumCounter++;
@@ -83,20 +83,44 @@ string Node::sent() {
             ret += "\n" + addIndent() + "}\n";
             return ret + sent();
         } break;
-		case RETURN: {
-			expect("return");
+        case FOR: {
+            string ret;
+            ret += addIndent() + "for (";
+            expect("for");
+            tokNumCounter++;
+            ret += loop();
+            ret += ") {\n";
+            expect("{");
+            tokNumCounter++;
+            cout << token[tokNumCounter].tokChar << endl;
+            indent++;
+            ret += sent();
+            indent--;
+            expect("}");
+            tokNumCounter++;
+            expect(";");
+            tokNumCounter++;
+            ret += "\n" + addIndent() + "}\n";
+            return ret + sent();
+        }
+        case RETURN: {
+            expect("return");
             tokNumCounter++;
 
-			string ret =  addIndent() + "return " + addSub() + ";";
+            string ret = addIndent() + "return " + addSub() + ";";
 
-            //tokNumCounter++;
+             // tokNumCounter++;
             tokNumCounter++;
-			expect(";");
+            expect(";");
             tokNumCounter++;
 
-			return ret + sent();
+            return ret + sent();
 
-		} break;
+        } break;
+        case SEMICORON: {
+            tokNumCounter++;
+            return addIndent() + ";";
+        }
     }
-    return " ";
+    return "";
 }

@@ -45,6 +45,7 @@ struct Node {
 	string parse(vector<tokens> geToken);
 
 	string eval();
+	string loop();
 	string comparison(int i, string ret);
 	string funcDefArtgment();
 	string funcCallArtgment();

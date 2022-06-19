@@ -1,7 +1,5 @@
-CMakeFiles/cru.dir/src/main.cpp.o: \
-  /Users/dangomushi/NeoObject/src/main.cpp \
-  /Users/dangomushi/NeoObject/src/Main.hpp \
-  /Users/dangomushi/NeoObject/src/CRU.hpp \
+CMakeFiles/cru.dir/src/main.cpp.o: /Users/dangomushi/cru/src/main.cpp \
+  /Users/dangomushi/cru/src/Main.hpp /Users/dangomushi/cru/src/CRU.hpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/iostream \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/__config \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/pthread.h \
@@ -237,8 +235,8 @@ CMakeFiles/cru.dir/src/main.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/__tree \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/__node_handle \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/optional \
-  /Users/dangomushi/NeoObject/src/Lexer/Lexer.hpp \
-  /Users/dangomushi/NeoObject/src/Node/Node.hpp \
+  /Users/dangomushi/cru/src/Lexer/Lexer.hpp \
+  /Users/dangomushi/cru/src/Node/Node.hpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/fstream \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/filesystem \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/stack \

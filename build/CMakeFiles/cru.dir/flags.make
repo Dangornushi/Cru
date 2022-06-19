@@ -4,7 +4,7 @@
 # compile CXX with /Library/Developer/CommandLineTools/usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/Users/dangomushi/NeoObject/src/Lexer -I/Users/dangomushi/NeoObject/src/Node -I/Users/dangomushi/NeoObject/src
+CXX_INCLUDES = -I/Users/dangomushi/cru/src/Lexer -I/Users/dangomushi/cru/src/Node -I/Users/dangomushi/cru/src
 
 CXX_FLAGSx86_64 =  -arch x86_64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.5 -std=gnu++20
 

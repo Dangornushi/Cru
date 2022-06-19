@@ -1,7 +1,7 @@
 CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.o: \
-  /Users/dangomushi/NeoObject/src/Lexer/Lexer.cpp \
-  /Users/dangomushi/NeoObject/src/Lexer/Lexer.hpp \
-  /Users/dangomushi/NeoObject/src/CRU.hpp \
+  /Users/dangomushi/cru/src/Lexer/Lexer.cpp \
+  /Users/dangomushi/cru/src/Lexer/Lexer.hpp \
+  /Users/dangomushi/cru/src/CRU.hpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/iostream \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/__config \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/pthread.h \

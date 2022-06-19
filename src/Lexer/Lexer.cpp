@@ -60,9 +60,22 @@ vector<tokens> Lexer::lex(string fileData) {
             i += LEN_IF - 1;
             continue;
         }
+        /*===--- <- ---===*/
 		if (fileData.substr(i, 2) == "<-") {
             token.push_back({EQ, "<-"});
             i += 2;
+            continue;
+		}
+        /*===--- for ---===*/
+		if (fileData.substr(i, LEN_FOR) == "for ") {
+            token.push_back({FOR, "for"});
+            i += LEN_FOR-1;
+            continue;
+		}
+        /*===--- in ---===*/
+		if (fileData.substr(i, LEN_IN) == "in ") {
+            token.push_back({IN, "in"});
+            i += LEN_IN - 1;
             continue;
 		}
         /*===--- op(MAP : OP) ---=== */

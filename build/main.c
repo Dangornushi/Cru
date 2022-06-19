@@ -1,11 +1,10 @@
-int sub (int x) {
-	if (x>0) {
-		return sub(x-1); 
+int fib (int n) {
+	if (n<2) {
+		return n;
 	}
-	return x; 
+	return fib(n-2)+fib(n-1);
 }int main () {
-	int s = sub(12);
-	return s; 
+	return fib(10);
 }
 int start(void) {
 	return main();

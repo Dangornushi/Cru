@@ -53,10 +53,10 @@ RM = /usr/local/Cellar/cmake/3.23.1_1/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/dangomushi/NeoObject
+CMAKE_SOURCE_DIR = /Users/dangomushi/cru
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/dangomushi/NeoObject/build
+CMAKE_BINARY_DIR = /Users/dangomushi/cru/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/cru.dir/depend.make
@@ -72,86 +72,86 @@ include CMakeFiles/cru.dir/flags.make
 CMakeFiles/cru.dir/src/main.cpp.o: CMakeFiles/cru.dir/flags.make
 CMakeFiles/cru.dir/src/main.cpp.o: ../src/main.cpp
 CMakeFiles/cru.dir/src/main.cpp.o: CMakeFiles/cru.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/dangomushi/NeoObject/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/cru.dir/src/main.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/cru.dir/src/main.cpp.o -MF CMakeFiles/cru.dir/src/main.cpp.o.d -o CMakeFiles/cru.dir/src/main.cpp.o -c /Users/dangomushi/NeoObject/src/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/dangomushi/cru/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/cru.dir/src/main.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/cru.dir/src/main.cpp.o -MF CMakeFiles/cru.dir/src/main.cpp.o.d -o CMakeFiles/cru.dir/src/main.cpp.o -c /Users/dangomushi/cru/src/main.cpp
 
 CMakeFiles/cru.dir/src/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/cru.dir/src/main.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/dangomushi/NeoObject/src/main.cpp > CMakeFiles/cru.dir/src/main.cpp.i
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/dangomushi/cru/src/main.cpp > CMakeFiles/cru.dir/src/main.cpp.i
 
 CMakeFiles/cru.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/cru.dir/src/main.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/dangomushi/NeoObject/src/main.cpp -o CMakeFiles/cru.dir/src/main.cpp.s
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/dangomushi/cru/src/main.cpp -o CMakeFiles/cru.dir/src/main.cpp.s
 
 CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.o: CMakeFiles/cru.dir/flags.make
 CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.o: ../src/Lexer/Lexer.cpp
 CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.o: CMakeFiles/cru.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/dangomushi/NeoObject/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.o -MF CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.o.d -o CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.o -c /Users/dangomushi/NeoObject/src/Lexer/Lexer.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/dangomushi/cru/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.o -MF CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.o.d -o CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.o -c /Users/dangomushi/cru/src/Lexer/Lexer.cpp
 
 CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/dangomushi/NeoObject/src/Lexer/Lexer.cpp > CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.i
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/dangomushi/cru/src/Lexer/Lexer.cpp > CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.i
 
 CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/dangomushi/NeoObject/src/Lexer/Lexer.cpp -o CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.s
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/dangomushi/cru/src/Lexer/Lexer.cpp -o CMakeFiles/cru.dir/src/Lexer/Lexer.cpp.s
 
 CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o: CMakeFiles/cru.dir/flags.make
 CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o: ../src/Node/NodeArgment.cpp
 CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o: CMakeFiles/cru.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/dangomushi/NeoObject/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o -MF CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o.d -o CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o -c /Users/dangomushi/NeoObject/src/Node/NodeArgment.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/dangomushi/cru/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o -MF CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o.d -o CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o -c /Users/dangomushi/cru/src/Node/NodeArgment.cpp
 
 CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/dangomushi/NeoObject/src/Node/NodeArgment.cpp > CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.i
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/dangomushi/cru/src/Node/NodeArgment.cpp > CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.i
 
 CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/dangomushi/NeoObject/src/Node/NodeArgment.cpp -o CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.s
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/dangomushi/cru/src/Node/NodeArgment.cpp -o CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.s
 
 CMakeFiles/cru.dir/src/Node/NodeSent.cpp.o: CMakeFiles/cru.dir/flags.make
 CMakeFiles/cru.dir/src/Node/NodeSent.cpp.o: ../src/Node/NodeSent.cpp
 CMakeFiles/cru.dir/src/Node/NodeSent.cpp.o: CMakeFiles/cru.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/dangomushi/NeoObject/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/cru.dir/src/Node/NodeSent.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/cru.dir/src/Node/NodeSent.cpp.o -MF CMakeFiles/cru.dir/src/Node/NodeSent.cpp.o.d -o CMakeFiles/cru.dir/src/Node/NodeSent.cpp.o -c /Users/dangomushi/NeoObject/src/Node/NodeSent.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/dangomushi/cru/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/cru.dir/src/Node/NodeSent.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/cru.dir/src/Node/NodeSent.cpp.o -MF CMakeFiles/cru.dir/src/Node/NodeSent.cpp.o.d -o CMakeFiles/cru.dir/src/Node/NodeSent.cpp.o -c /Users/dangomushi/cru/src/Node/NodeSent.cpp
 
 CMakeFiles/cru.dir/src/Node/NodeSent.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/cru.dir/src/Node/NodeSent.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/dangomushi/NeoObject/src/Node/NodeSent.cpp > CMakeFiles/cru.dir/src/Node/NodeSent.cpp.i
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/dangomushi/cru/src/Node/NodeSent.cpp > CMakeFiles/cru.dir/src/Node/NodeSent.cpp.i
 
 CMakeFiles/cru.dir/src/Node/NodeSent.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/cru.dir/src/Node/NodeSent.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/dangomushi/NeoObject/src/Node/NodeSent.cpp -o CMakeFiles/cru.dir/src/Node/NodeSent.cpp.s
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/dangomushi/cru/src/Node/NodeSent.cpp -o CMakeFiles/cru.dir/src/Node/NodeSent.cpp.s
 
 CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.o: CMakeFiles/cru.dir/flags.make
 CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.o: ../src/Node/NodeFunctionDefinition.cpp
 CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.o: CMakeFiles/cru.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/dangomushi/NeoObject/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.o -MF CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.o.d -o CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.o -c /Users/dangomushi/NeoObject/src/Node/NodeFunctionDefinition.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/dangomushi/cru/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.o -MF CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.o.d -o CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.o -c /Users/dangomushi/cru/src/Node/NodeFunctionDefinition.cpp
 
 CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/dangomushi/NeoObject/src/Node/NodeFunctionDefinition.cpp > CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.i
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/dangomushi/cru/src/Node/NodeFunctionDefinition.cpp > CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.i
 
 CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/dangomushi/NeoObject/src/Node/NodeFunctionDefinition.cpp -o CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.s
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/dangomushi/cru/src/Node/NodeFunctionDefinition.cpp -o CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.s
 
 CMakeFiles/cru.dir/src/Node/Node.cpp.o: CMakeFiles/cru.dir/flags.make
 CMakeFiles/cru.dir/src/Node/Node.cpp.o: ../src/Node/Node.cpp
 CMakeFiles/cru.dir/src/Node/Node.cpp.o: CMakeFiles/cru.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/dangomushi/NeoObject/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/cru.dir/src/Node/Node.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/cru.dir/src/Node/Node.cpp.o -MF CMakeFiles/cru.dir/src/Node/Node.cpp.o.d -o CMakeFiles/cru.dir/src/Node/Node.cpp.o -c /Users/dangomushi/NeoObject/src/Node/Node.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/dangomushi/cru/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/cru.dir/src/Node/Node.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/cru.dir/src/Node/Node.cpp.o -MF CMakeFiles/cru.dir/src/Node/Node.cpp.o.d -o CMakeFiles/cru.dir/src/Node/Node.cpp.o -c /Users/dangomushi/cru/src/Node/Node.cpp
 
 CMakeFiles/cru.dir/src/Node/Node.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/cru.dir/src/Node/Node.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/dangomushi/NeoObject/src/Node/Node.cpp > CMakeFiles/cru.dir/src/Node/Node.cpp.i
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/dangomushi/cru/src/Node/Node.cpp > CMakeFiles/cru.dir/src/Node/Node.cpp.i
 
 CMakeFiles/cru.dir/src/Node/Node.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/cru.dir/src/Node/Node.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/dangomushi/NeoObject/src/Node/Node.cpp -o CMakeFiles/cru.dir/src/Node/Node.cpp.s
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/dangomushi/cru/src/Node/Node.cpp -o CMakeFiles/cru.dir/src/Node/Node.cpp.s
 
 # Object files for target cru
 cru_OBJECTS = \
@@ -173,7 +173,7 @@ cru: CMakeFiles/cru.dir/src/Node/NodeFunctionDefinition.cpp.o
 cru: CMakeFiles/cru.dir/src/Node/Node.cpp.o
 cru: CMakeFiles/cru.dir/build.make
 cru: CMakeFiles/cru.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/dangomushi/NeoObject/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable cru"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/dangomushi/cru/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable cru"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/cru.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -185,6 +185,6 @@ CMakeFiles/cru.dir/clean:
 .PHONY : CMakeFiles/cru.dir/clean
 
 CMakeFiles/cru.dir/depend:
-	cd /Users/dangomushi/NeoObject/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/dangomushi/NeoObject /Users/dangomushi/NeoObject /Users/dangomushi/NeoObject/build /Users/dangomushi/NeoObject/build /Users/dangomushi/NeoObject/build/CMakeFiles/cru.dir/DependInfo.cmake --color=$(COLOR)
+	cd /Users/dangomushi/cru/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/dangomushi/cru /Users/dangomushi/cru /Users/dangomushi/cru/build /Users/dangomushi/cru/build /Users/dangomushi/cru/build/CMakeFiles/cru.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/cru.dir/depend
 

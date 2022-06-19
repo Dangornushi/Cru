@@ -1,7 +1,7 @@
 CMakeFiles/cru.dir/src/Node/Node.cpp.o: \
-  /Users/dangomushi/NeoObject/src/Node/Node.cpp \
-  /Users/dangomushi/NeoObject/src/Node/Node.hpp \
-  /Users/dangomushi/NeoObject/src/CRU.hpp \
+  /Users/dangomushi/cru/src/Node/Node.cpp \
+  /Users/dangomushi/cru/src/Node/Node.hpp \
+  /Users/dangomushi/cru/src/CRU.hpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/iostream \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/__config \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/pthread.h \
