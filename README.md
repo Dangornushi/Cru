@@ -1,5 +1,3 @@
-# Cru
-
 ![CRU](img/CRU.png)
 
 # What is this??
