@@ -3,6 +3,9 @@
 
 #include <fstream>
 
+/* Copyright (c) 2022 Dangomsuhi
+ * This software is released under the MIT License, see LICENSE.
+*/
 
 Main::Main(int n, char *arg[]) {
     version = "cru ver.0.0.1";
