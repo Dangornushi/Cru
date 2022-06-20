@@ -43,23 +43,29 @@ string Node::sent() {
                 if (i->name == valueName)
                     // もうすでに変数が存在する
                     break;
-                else
-                    // 初めて宣言される
-                    hasType = False;
+                // 初めて宣言される
+                 hasType = False;
             }
 
             valMemory.push_back({0, isMut, valueType, valueName});
+
+            /*
             if (hasType == True && isMut == False) {
                 cout << "let " << valueName << " : " << valueType << " <-" << endl
                      << "    ^ The variable is doubly defined!!" << endl;
                 exit(1);
             }
+            */
             if (hasType == True && isMut == True) {
                 cout << "Warning: value '" << valueName << "' has the @Mut option. " << endl;
                 ret = addIndent() + valueName + " = " + data + ";\n" + sent();
+            } else {
+                if (valueType == "str") {
+                    valueType = 
+                    ret = addIndent() + "char " + valueName + " [] = " + data + ";\n" + sent();
+                } else
+                    ret = addIndent() + valueType + " " + valueName + " = " + data + ";\n" + sent();
             }
-            else
-                ret = addIndent() + valueType + " " + valueName + " = " + data + ";\n" + sent();
 
             return ret;
 
@@ -102,7 +108,16 @@ string Node::sent() {
             tokNumCounter++;
             ret += "\n" + addIndent() + "}\n";
             return ret + sent();
-        }
+        } break;
+        case PUT: {
+            expect("put");
+            tokNumCounter++;
+            string data = addSub();
+            tokNumCounter++;
+            expect(";");
+            tokNumCounter++;
+            return addIndent() + "__CRU_Strput(" + data + ", sizeof("+ data + "));" + sent();
+        } break;
         case RETURN: {
             expect("return");
             tokNumCounter++;

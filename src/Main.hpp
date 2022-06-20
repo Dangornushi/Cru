@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CRU.hpp"
-
 #include "Lexer.hpp"
 #include "Node.hpp"
 
@@ -26,7 +25,7 @@ class Main {
 
   vector<tokens> token;
 
-public:
+ public:
   Main(int n, char *arg[]);
   void cru();
 };

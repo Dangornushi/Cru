@@ -480,6 +480,9 @@ CMakeFiles/cru.dir/src/Node/Node.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/__tree
  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/__node_handle
  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/optional
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/stat.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/_types/_s_ifmt.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/_types/_filesec_t.h
 
 CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o
  /Users/dangomushi/cru/src/Node/NodeArgment.cpp
@@ -1447,4 +1450,9 @@ CMakeFiles/cru.dir/src/main.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/stack
  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/deque
  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/iomanip
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/stat.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/_types/_s_ifmt.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/_types/_filesec_t.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/dirent.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/dirent.h
 

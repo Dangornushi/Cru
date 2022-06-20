@@ -1,5 +1,7 @@
 #include "Node.hpp"
 
+#include <sys/stat.h>
+
 
 // loop to the end of file.
 string Node::parse(vector<tokens> geToken) {
@@ -95,7 +97,20 @@ string Node::expr() {
 
 
 string Node::word() {
-    return token[tokNumCounter].tokChar;
+	int index = tokNumCounter;
+	string ret;
+	if (token[index].tokChar == "\"") {
+	    for (; token[index + 1].tokChar != "\"";index++)
+			ret += token[index + 1].tokChar;
+		ret = "\"" + ret + "\"";
+		index++;
+	} else {
+	    ret = token[index].tokChar;
+	}
+
+	 tokNumCounter = index;
+
+    return ret;
 }
 
 string Node::eval() {
@@ -127,6 +142,6 @@ string Node::loop() {
 	iterate_2 = addSub();
 	tokNumCounter++;
 
-	return "int " + doValue + " = 0; " + doValue + " < " + iterate_2 + "; "+ doValue + "++";
+	return "int " + doValue + " = " + iterate_1 + "; " + doValue + " < " + iterate_2 + "; "+ doValue + "++";
 }
 

@@ -477,7 +477,10 @@ CMakeFiles/cru.dir/src/Node/Node.cpp.o: ../src/Node/Node.cpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/map \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/__tree \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/__node_handle \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/optional
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/optional \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/stat.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/_types/_s_ifmt.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/_types/_filesec_t.h
 
 CMakeFiles/cru.dir/src/Node/NodeArgment.cpp.o: ../src/Node/NodeArgment.cpp \
   ../src/Node/Node.hpp \
@@ -1440,8 +1443,15 @@ CMakeFiles/cru.dir/src/main.cpp.o: ../src/main.cpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/filesystem \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/stack \
   /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/deque \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/iomanip
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/iomanip \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/stat.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/_types/_s_ifmt.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/_types/_filesec_t.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/dirent.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/dirent.h
 
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/dirent.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/iomanip:
 
@@ -1452,6 +1462,8 @@ CMakeFiles/cru.dir/src/main.cpp.o: ../src/main.cpp \
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/fstream:
 
 ../src/Node/NodeArgment.cpp:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/stat.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/optional:
 
@@ -1621,6 +1633,8 @@ CMakeFiles/cru.dir/src/main.cpp.o: ../src/main.cpp \
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/__memory/utilities.h:
 
+/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/_types/_filesec_t.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/limits:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/xlocale/_time.h:
@@ -1638,6 +1652,8 @@ CMakeFiles/cru.dir/src/main.cpp.o: ../src/main.cpp \
 ../src/Main.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/alloca.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/dirent.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/libkern/i386/_OSByteOrder.h:
 
@@ -1846,6 +1862,8 @@ CMakeFiles/cru.dir/src/main.cpp.o: ../src/main.cpp \
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/iterator:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/c++/v1/ios:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/sys/_types/_s_ifmt.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/_types/_wctrans_t.h:
 
