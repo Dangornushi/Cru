@@ -56,11 +56,12 @@ void Main::write() {
 
 void Main::run() {
     string Compiler = "CC";
-    string runCmd = Compiler + " " + splitStr(fileName)+".c";
+    string runCmd = Compiler + " -o crucache/" + splitStr(fileName) + " " + splitStr(fileName)+".c";
     char *cstr = new char[runCmd.size() + 1]; // メモリ確保
 
     std::char_traits<char>::copy(cstr, runCmd.c_str(), runCmd.size() + 1);
 
+    std::system("mkdir crucache");
     std::system(cstr);
     delete[] cstr;
 }
