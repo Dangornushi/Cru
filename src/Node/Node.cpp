@@ -2,6 +2,9 @@
 
 #include <sys/stat.h>
 
+Node::Node(int langMode) {
+	this->langMode = langMode;
+}
 
 // loop to the end of file.
 string Node::parse(vector<tokens> geToken) {

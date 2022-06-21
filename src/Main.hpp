@@ -13,22 +13,24 @@ class Main {
 
   int langMode;
   int debugMode;
-
+  string fileName;
   string version;
+
   string runCode;
   string fileData;
-  string fileName;
 
   void open();
   void write();
   void run();
+  void cmdArg(int i, char *arg[], int Big);
 
   vector<tokens> token;
 
+
  public:
+
   Main(int n, char *arg[]);
   void cru();
 };
 
-Lexer lexer;
-Node node;
+void cmdArg(int i, char *arg[]);

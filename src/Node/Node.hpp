@@ -35,10 +35,13 @@ struct Type {
 
 struct Node {
 
+	Node(int langMode);
 	vector<tokens> token;
     int tokNumCounter;
 	int indent;
 	int ownership;
+	int langMode;
+
 	void expect(string str);
 	vector<Type>valMemory;
     string addIndent();

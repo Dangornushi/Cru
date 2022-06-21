@@ -11,24 +11,10 @@
 */
 
 Main::Main(int n, char *arg[]) {
+    langMode = CPP;
     version = "cru ver.0.0.1";
+    cmdArg(1, arg, n);
 	debugMode = 1;
-    if (n > 1) {
-        if (arg[1][0] != '-') {
-            langMode = CPP;
-            fileName = string(arg[1]);
-        }
-        else if (arg[1][1] == 'v') {
-            cout << version << endl;
-            exit(0);
-        } else {
-            cout << "Unknown option '" << arg[1] << "'." << endl;
-            exit(0);
-        }
-    } else {
-        cout << "Please add '-$command'." << endl;;
-        exit(0);
-    }
 }
 
 string splitStr(string s1) {
@@ -77,10 +63,21 @@ void Main::run() {
 }
 
 void Main::cru() {
+
     open();
 
-    runCode = "#include <stdio.h>\n\n";
-    runCode += "int __CRU_Strput(char *__s1, int __size) {\n\tfor(size_t __i=0;__i<__size;__i++)\n\t\tprintf(\"%c\", __s1[__i]);\n\treturn 0;\n}\n";
+    if (langMode == CPP) {
+        runCode = "#include <stdio.h>\n\n";
+        runCode +=
+            "int __CRU_Strput(char *__s1, int __size) {\n\t"
+                "for(size_t __i=0;__i<__size;__i++)\n\t\t"
+                    "printf(\"%c\", __s1[__i]);\n\t"
+                "return 0;\n"
+            "}\n";
+    }
+
+    Lexer lexer;
+    Node node(langMode);
 
     token = lexer.lex(fileData);
     runCode += node.parse(token);
@@ -98,6 +95,31 @@ int isDigit(string s1) {
             return True;
     }
     return False;
+}
+
+void Main::cmdArg(int i, char *arg[], int Big) {
+    if (Big > i) {
+        if (arg[i][0] != '-') {
+            fileName = string(arg[i]);
+            i++;
+            return cmdArg(i, arg, Big);
+        } else if (arg[i][1] == 'v') {
+            cout << version << endl;
+            exit(0);
+        } else if (arg[i][1] == 'a') {
+            cout << version << endl;
+            i++;
+            return cmdArg(i, arg, Big);
+        } else if (arg[i][1] == 'p') {
+            langMode = PYTHON;
+            i++;
+            return cmdArg(i, arg, Big);
+        } else {
+            cout << "Unknown option '" << arg[i] << "'." << endl;
+            exit(0);
+        }
+    }
+    return;
 }
 
 int main(int argc, char *argcv[]) {

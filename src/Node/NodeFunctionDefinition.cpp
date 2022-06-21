@@ -5,23 +5,23 @@ string Node::functionDefinition() {
         string argment = "";
         string functionName;
         string functionType;
-		string functionData;
-		string ret;
+        string functionData;
+        string ret;
 
-		indent++;
+        indent++;
 
-        tokNumCounter++; // fn
+        expect("fn");
+        tokNumCounter++;  // fn
 
         functionName = word();
 
         tokNumCounter++;
 
         if (token[tokNumCounter].tokNum == LBRACKET) {
-            tokNumCounter++; // (
-			if (token[tokNumCounter].tokNum != RBRACKET)
-            	argment = funcDefArtgment();
-            tokNumCounter++; // )
-	
+            tokNumCounter++;  // (
+            if (token[tokNumCounter].tokNum != RBRACKET)
+                argment = funcDefArtgment();
+            tokNumCounter++;  // )
         }
 
         expect(":");
@@ -30,13 +30,14 @@ string Node::functionDefinition() {
 
         functionType = word();
 
-		string Fsent = "fn " + functionName + "(" + argment + ") : ";  
+        string Fsent;
 
+        Fsent = "fn " + functionName + "(" + argment + ") : ";
 
         if (functionType == "auto") {
-			cout << Fsent + functionType << endl;;
-            for (int i= 0; i < Fsent.length();i++)
-                cout << " " << std::flush;
+            cout << Fsent + functionType << endl;
+            ;
+            for (int i = 0; i < Fsent.length(); i++) cout << " " << std::flush;
             cout << "^ Can't use 'auto' for function return value." << endl;
         }
 
@@ -46,18 +47,19 @@ string Node::functionDefinition() {
 
         tokNumCounter++;
 
-		functionData = sent();
+        functionData = sent();
 
         expect("}");
 
         tokNumCounter++;
 
-		indent--;
+        indent--;
 
-		valMemory.push_back({0, False, functionType, functionName});
+        valMemory.push_back({0, False, functionType, functionName});
 
-		ret = functionType + " " + functionName + " (" + argment + ") {\n" + functionData + "\n}" + functionDefinition();
-		
+        (langMode == PYTHON)
+            ? ret = "def " + functionName + " (" + argment + ") :\n" + functionData + functionDefinition()
+            : ret = functionType + " " + functionName + " (" + argment + ") {\n" + functionData + "\n}" + functionDefinition();
 
         return ret;
     }

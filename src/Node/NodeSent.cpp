@@ -49,22 +49,22 @@ string Node::sent() {
 
             valMemory.push_back({0, isMut, valueType, valueName});
 
-            /*
-            if (hasType == True && isMut == False) {
-                cout << "let " << valueName << " : " << valueType << " <-" << endl
-                     << "    ^ The variable is doubly defined!!" << endl;
-                exit(1);
-            }
-            */
             if (hasType == True && isMut == True) {
                 cout << "Warning: value '" << valueName << "' has the @Mut option. " << endl;
                 ret = addIndent() + valueName + " = " + data + ";\n" + sent();
             } else {
-                if (valueType == "str") {
-                    valueType = 
-                    ret = addIndent() + "char " + valueName + " [] = " + data + ";\n" + sent();
-                } else
-                    ret = addIndent() + valueType + " " + valueName + " = " + data + ";\n" + sent();
+                if (langMode == PYTHON) {
+                        ret = addIndent() + valueName +
+                              " = " + data + "\n" + sent();
+                }
+                if (langMode == CPP) {
+                    if (valueType == "str") {
+                        valueType = ret = addIndent() + "char " + valueName +
+                                          " [] = " + data + ";\n" + sent();
+                    } else
+                        ret = addIndent() + valueType + " " + valueName +
+                              " = " + data + ";\n" + sent();
+                }
             }
 
             return ret;
@@ -106,23 +106,42 @@ string Node::sent() {
             tokNumCounter++;
             expect(";");
             tokNumCounter++;
+
             ret += "\n" + addIndent() + "}\n";
+
             return ret + sent();
         } break;
         case PUT: {
+            string ret;
+
             expect("put");
             tokNumCounter++;
             string data = addSub();
             tokNumCounter++;
             expect(";");
             tokNumCounter++;
-            return addIndent() + "__CRU_Strput(" + data + ", sizeof("+ data + "));" + sent();
+
+            if (langMode == PYTHON) {
+                ret = addIndent() + "print(" + addSub() + ")";
+            }
+            if (langMode == CPP) {
+                ret = addIndent() + "__CRU_Strput(" + data + ", sizeof("+ data + "));";
+            }
+
+            return ret + sent();
         } break;
         case RETURN: {
+            string ret;
+
             expect("return");
             tokNumCounter++;
 
-            string ret = addIndent() + "return " + addSub() + ";";
+            if (langMode == PYTHON) {
+                ret = addIndent() + "return " + addSub();
+            }
+            if (langMode == CPP) {
+                ret = addIndent() + "return " + addSub() + ";";
+            }
 
              // tokNumCounter++;
             tokNumCounter++;
