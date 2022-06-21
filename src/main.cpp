@@ -43,22 +43,19 @@ void Main::write() {
     string fileBuf;
 
     std::ofstream writing_file;
-    writing_file.open(splitStr(fileName)+".c", std::ios::out);
+    writing_file.open("crucache/" + splitStr(fileName)+".c", std::ios::out);
     writing_file << runCode;
     writing_file.close();
 }
 
 void Main::run() {
     string Compiler = "CC";
-    string runCmd = Compiler + " -o crucache/" + splitStr(fileName) + " " + splitStr(fileName)+".c";
+    string runCmd = Compiler + " -o crucache/" + splitStr(fileName) + " " + "crucache/" + splitStr(fileName)+".c";
     char *cstr = new char[runCmd.size() + 1]; // メモリ確保
 
     std::char_traits<char>::copy(cstr, runCmd.c_str(), runCmd.size() + 1);
-
-    if(mkdir("crucache", 0777)==0){
-        std::system(cstr);
-    }else
-        ;
+    mkdir("crucache", 0777);
+    std::system(cstr);
     delete[] cstr;
 }
 
@@ -69,11 +66,16 @@ void Main::cru() {
     if (langMode == CPP) {
         runCode = "#include <stdio.h>\n\n";
         runCode +=
+            "int __CRU_Charput(char __s1) {\n\t"
+                "printf(\"%c\", __s1);\n\t"
+                "return 0;\n"
+            "}\n"
             "int __CRU_Strput(char *__s1, int __size) {\n\t"
                 "for(size_t __i=0;__i<__size;__i++)\n\t\t"
-                    "printf(\"%c\", __s1[__i]);\n\t"
+                    "__CRU_Charput(__s1[__i]);\n\t"
                 "return 0;\n"
-            "}\n";
+            "}\n"
+            "\n";
     }
 
     Lexer lexer;
@@ -114,6 +116,17 @@ void Main::cmdArg(int i, char *arg[], int Big) {
             langMode = PYTHON;
             i++;
             return cmdArg(i, arg, Big);
+        } else if (arg[i][1] == '-') {
+            if (!strcmp(arg[i], "--logo")) {
+                cout << " ▄▀▄▄▄▄   ▄▀▀▄▀▀▀▄  ▄▀▀▄ ▄▀▀▄\n"
+                        "█ █    ▌ █   █   █ █   █    █\n"
+                        "▐ █      ▐  █▀▀█▀  ▐  █    █ \n"
+                        "  █       ▄▀    █    █    █  \n"
+                        " ▄▀▄▄▄▄▀ █     █      ▀▄▄▄▄▀ \n"
+                        "█     ▐  ▐     ▐             \n"
+                        "▐                            \n" << endl;
+                exit(0);
+            }
         } else {
             cout << "Unknown option '" << arg[i] << "'." << endl;
             exit(0);
