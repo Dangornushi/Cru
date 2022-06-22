@@ -133,6 +133,7 @@ string Node::loop() {
 	string doValue = "";
 	string iterate_1;
 	string iterate_2;
+	string ret;
 
 	doValue = word();
 	tokNumCounter++;
@@ -145,6 +146,10 @@ string Node::loop() {
 	iterate_2 = addSub();
 	tokNumCounter++;
 
-	return "int " + doValue + " = " + iterate_1 + "; " + doValue + " < " + iterate_2 + "; "+ doValue + "++";
+	if (langMode == CPP)
+	    ret = "int " + doValue + " = " + iterate_1 + "; " + doValue + " < " + iterate_2 + "; " + doValue + "++";
+	if (langMode == PYTHON)
+	    ret = doValue +  " in range(" + iterate_2 + " - " + iterate_1") ";
+	return ret;
 }
 

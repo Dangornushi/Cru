@@ -72,44 +72,57 @@ string Node::sent() {
         } break;
         case IF: {
             string ret;
-            ret = addIndent() + "if (";
+            string evalS;
+            string sentS;
+
             expect("if");
             tokNumCounter++;
-            ret += eval();
-            ret += ") {\n";
+            evalS = eval();
+            if (langMode == PYTHON)
+                ret = addIndent() + "if " + evalS ":\n";
+            if (langMode == CPP)
+                ret = addIndent() + "if (" + evalS ") {\n";
             expect("{");
             tokNumCounter++;
             indent++;
-            ret += sent();
+            sentS = sent();
             indent--;
             expect("}");
             tokNumCounter++;
             expect(";");
             tokNumCounter++;
-            ret += "\n" + addIndent() + "}\n";
-            return ret + sent();
+            ret += "\n" + addIndent();
+            if (langMode == CPP)
+                ret +=  + "}";
+
+            return ret + "\n" + sent();
         } break;
         case FOR: {
             string ret;
-            ret += addIndent() + "for (";
+            string loopS;
+            string sentS;
+
             expect("for");
             tokNumCounter++;
-            ret += loop();
-            ret += ") {\n";
+            loopS = loop();
+            if (langMode == PYTHON)
+                ret = addIndent() + "for " + loopS ":\n";
+            if (langMode == CPP)
+                ret = addIndent() + "for (" + loopS ") {\n";
             expect("{");
             tokNumCounter++;
-            cout << token[tokNumCounter].tokChar << endl;
             indent++;
-            ret += sent();
+            sentS = sent();
             indent--;
             expect("}");
             tokNumCounter++;
             expect(";");
             tokNumCounter++;
+            ret += "\n" + addIndent();
+            if (langMode == CPP)
+                ret +=  + "}";
 
-            ret += "\n" + addIndent() + "}\n";
-
-            return ret + sent();
+            return ret + "\n" + sent();
         } break;
         case PUT: {
             string ret;
