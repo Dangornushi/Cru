@@ -64,16 +64,22 @@ void Main::cru() {
     open();
 
     if (langMode == CPP) {
-        runCode = "#include <stdio.h>\n\n";
+        runCode = "#include <stdio.h>\n";
+        runCode = "#include <string.h>\n\n";
         runCode +=
             "int __CRU_Charput(char __s1) {\n\t"
                 "printf(\"%c\", __s1);\n\t"
                 "return 0;\n"
             "}\n"
-            "int __CRU_Strput(char *__s1, int __size) {\n\t"
+            "int __CRU_Strput(const char *__s1, int __size) {\n\t"
                 "for(size_t __i=0;__i<__size;__i++)\n\t\t"
                     "__CRU_Charput(__s1[__i]);\n\t"
                 "return 0;\n"
+            "}\n"
+            "char *__CRU_Add(const char *s1, const char *s2) {\n\t"
+                "char *ret;\n\t"
+                "strcpy(ret, s1);\n\t"
+                "return strcat(ret, s2);\n\t"
             "}\n"
             "\n";
     }

@@ -43,6 +43,7 @@ enum RESERV {
 	MUT,
 	FOR,
 	IN,
+	APPEND,
 
 	/* TYPE AND VARs */
 	WORD,

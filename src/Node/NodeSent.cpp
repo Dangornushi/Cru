@@ -37,14 +37,16 @@ string Node::sent() {
 
             tokNumCounter++;
 
-            int hasType = True;
+            int hasType;
+            hasType = False;
 
             for (vector<Type>::const_iterator i = valMemory.begin(); i != valMemory.end(); i++) {
-                if (i->name == valueName)
+                if (i->name == valueName) {
                     // もうすでに変数が存在する
+                    hasType = True;
                     break;
+                }
                 // 初めて宣言される
-                 hasType = False;
             }
 
             valMemory.push_back({0, isMut, valueType, valueName});
@@ -52,6 +54,10 @@ string Node::sent() {
             if (hasType == True && isMut == True) {
                 cout << "Warning: value '" << valueName << "' has the @Mut option. " << endl;
                 ret = addIndent() + valueName + " = " + data + ";\n" + sent();
+            }
+            if (hasType == True && isMut != True) {
+                cout << "Error: value '" << valueName << "' has already been defined. " << endl;
+                exit(0);
             } else {
                 if (langMode == PYTHON) {
                         ret = addIndent() + valueName +
@@ -79,9 +85,9 @@ string Node::sent() {
             tokNumCounter++;
             evalS = eval();
             if (langMode == PYTHON)
-                ret = addIndent() + "if " + evalS ":\n";
+                ret = addIndent() + "if " + evalS + ":\n";
             if (langMode == CPP)
-                ret = addIndent() + "if (" + evalS ") {\n";
+                ret = addIndent() + "if (" + evalS + ") {\n";
             expect("{");
             tokNumCounter++;
             indent++;
@@ -106,9 +112,9 @@ string Node::sent() {
             tokNumCounter++;
             loopS = loop();
             if (langMode == PYTHON)
-                ret = addIndent() + "for " + loopS ":\n";
+                ret = addIndent() + "for " + loopS + ":\n";
             if (langMode == CPP)
-                ret = addIndent() + "for (" + loopS ") {\n";
+                ret = addIndent() + "for (" + loopS + ") {\n";
             expect("{");
             tokNumCounter++;
             indent++;
@@ -163,6 +169,24 @@ string Node::sent() {
 
             return ret + sent();
 
+        } break;
+        case APPEND: {
+            string ret;
+            string s1;
+            string s2;
+
+            expect("append");
+            tokNumCounter++;
+
+            if (langMode == PYTHON) {
+            }
+            if (langMode == CPP) {
+                s1 = addSub();
+                tokNumCounter++;
+            expect(",");
+            tokNumCounter++;
+            }
+            return ret;
         } break;
         case SEMICORON: {
             tokNumCounter++;

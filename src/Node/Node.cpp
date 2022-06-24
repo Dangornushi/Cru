@@ -149,7 +149,7 @@ string Node::loop() {
 	if (langMode == CPP)
 	    ret = "int " + doValue + " = " + iterate_1 + "; " + doValue + " < " + iterate_2 + "; " + doValue + "++";
 	if (langMode == PYTHON)
-	    ret = doValue +  " in range(" + iterate_2 + " - " + iterate_1") ";
+	    ret = doValue +  " in range(" + iterate_2 + " - " + iterate_1 + ") ";
 	return ret;
 }
 

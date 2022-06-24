@@ -15,6 +15,7 @@
 #define LEN_ENTRY 4
 #define LEN_WHILE 6
 #define LEN_RETURN 7
+#define LEN_APPEND 7
 
 class Lexer {
 	/* Mapping OPs */
