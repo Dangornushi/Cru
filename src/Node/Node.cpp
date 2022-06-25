@@ -78,6 +78,9 @@ string Node::mulDiv() {
 string Node::funCall() {
 	if (token[tokNumCounter+1].tokNum == LBRACKET) {
 		string funcName = token[tokNumCounter++].tokChar;
+		if (funcName == "_add")
+			funcName = "__CRU_Add";
+        
 		tokNumCounter++;
 		string argment = funcCallArtgment();
 		expect(")");

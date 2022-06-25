@@ -4,6 +4,7 @@ string Node::sent() {
     switch (token[tokNumCounter].tokNum) {
         case LET: {
             int isMut;
+            int isPointer;
             string valueName;
             string valueType;
             string data;
@@ -65,11 +66,14 @@ string Node::sent() {
                 }
                 if (langMode == CPP) {
                     if (valueType == "str") {
-                        valueType = ret = addIndent() + "char " + valueName +
-                                          " [] = " + data + ";\n" + sent();
+                        ret = addIndent() + "char " + valueName + " [] = " + data + ";\n" + sent();
+                    }
+                    else if (valueType == "string") {
+                        ret = addIndent() + "char *" + valueName + " = " + data + ";\n" + sent();
+
                     } else
-                        ret = addIndent() + valueType + " " + valueName +
-                              " = " + data + ";\n" + sent();
+                        ret = addIndent() + valueType + " " + valueName + " = " + data + ";\n" +
+                              sent();
                 }
             }
 
@@ -141,10 +145,29 @@ string Node::sent() {
             tokNumCounter++;
 
             if (langMode == PYTHON) {
-                ret = addIndent() + "print(" + addSub() + ")";
+                ret = addIndent() + "print(" + addSub() + ")\n";
             }
             if (langMode == CPP) {
-                ret = addIndent() + "__CRU_Strput(" + data + ", sizeof("+ data + "));";
+                ret = addIndent() + "__CRU_Strput(" + data + ", sizeof("+ data + "));\n";
+            }
+
+            return ret + sent();
+        } break;
+        case PRINT: {
+            string ret;
+
+            expect("print");
+            tokNumCounter++;
+            string data = addSub();
+            tokNumCounter++;
+            expect(";");
+            tokNumCounter++;
+
+            if (langMode == PYTHON) {
+                ret = addIndent() + "print(" + addSub() + ")\n";
+            }
+            if (langMode == CPP) {
+                ret = addIndent() + "__CRU_Stringput(" + data + ");\n";
             }
 
             return ret + sent();
@@ -170,28 +193,20 @@ string Node::sent() {
             return ret + sent();
 
         } break;
-        case APPEND: {
-            string ret;
-            string s1;
-            string s2;
-
-            expect("append");
-            tokNumCounter++;
-
-            if (langMode == PYTHON) {
-            }
-            if (langMode == CPP) {
-                s1 = addSub();
-                tokNumCounter++;
-            expect(",");
-            tokNumCounter++;
-            }
-            return ret;
-        } break;
         case SEMICORON: {
             tokNumCounter++;
             return addIndent() + ";";
         }
+        default: {
+            if (token[tokNumCounter+1].tokChar == "")
+                return "";
+            cout << token[tokNumCounter].tokChar << endl;
+            string ret = addSub();
+            tokNumCounter++;
+            expect(";");
+            tokNumCounter++;
+            return addIndent() + ret + ";\n" + sent();
+        } break;
     }
     return "";
 }

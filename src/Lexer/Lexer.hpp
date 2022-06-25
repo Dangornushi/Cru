@@ -14,6 +14,7 @@
 #define LEN_CALL 2
 #define LEN_ENTRY 4
 #define LEN_WHILE 6
+#define LEN_PRINT 6
 #define LEN_RETURN 7
 #define LEN_APPEND 7
 
@@ -37,6 +38,7 @@ class Lexer {
 		{'*', MUL},
 		{'/', DIV},
         {'~', TILDE},
+        {'&', ADDRESS},
     };
 
   public:

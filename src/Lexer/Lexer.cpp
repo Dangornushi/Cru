@@ -54,6 +54,12 @@ vector<tokens> Lexer::lex(string fileData) {
             i += LEN_PUT - 1;
             continue;
         }
+        /*===--- print ---=== */
+        if (fileData.substr(i, LEN_PRINT) == "print ") {
+            token.push_back({PRINT, "print"});
+            i += LEN_PRINT - 1;
+            continue;
+        }
         /*===--- append ---=== */
         if (fileData.substr(i, LEN_APPEND) == "append ") {
             token.push_back({APPEND, "append"});

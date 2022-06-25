@@ -34,6 +34,7 @@ enum RESERV {
 	LET,
 	RETURN,
 	PUT,
+	PRINT,
 	IF,
 	ELSE,
 	ELIF,
@@ -73,5 +74,6 @@ enum RESERV {
 	DIV,
 	EQ,
 	TILDE,
+	ADDRESS,
 };
 

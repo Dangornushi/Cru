@@ -9,8 +9,9 @@ string Node::funcCallArtgment() {
         if (token[tokNumCounter].tokNum== RBRACKET) {
             break;
 		}
-        if (token[tokNumCounter - 1].tokNum == CANMA) {
+        if (token[tokNumCounter].tokNum == CANMA) {
             oneArgment.push_back(',');
+            tokNumCounter++;
         }
         else {
             string arg = addSub();

@@ -64,8 +64,9 @@ void Main::cru() {
     open();
 
     if (langMode == CPP) {
+        char tmp[1];
         runCode = "#include <stdio.h>\n";
-        runCode = "#include <string.h>\n\n";
+        runCode += "#include <string.h>\n\n";
         runCode +=
             "int __CRU_Charput(char __s1) {\n\t"
                 "printf(\"%c\", __s1);\n\t"
@@ -76,10 +77,15 @@ void Main::cru() {
                     "__CRU_Charput(__s1[__i]);\n\t"
                 "return 0;\n"
             "}\n"
-            "char *__CRU_Add(const char *s1, const char *s2) {\n\t"
-                "char *ret;\n\t"
-                "strcpy(ret, s1);\n\t"
-                "return strcat(ret, s2);\n\t"
+            "int __CRU_Stringput(char *__s1) {\n\t"
+                "printf(\"%s\", __s1);\n\t"
+                "return 0;\n"
+            "}\n"
+            "char *__CRU_Add(char *s1, const char *s2) {\n\t"
+                "char buf[512];\n\t"
+                "sprintf(buf, \"%s%s\", s1, s2);\n\t"
+                "strcpy(s1, buf);\n\t"
+                "return s1;\n"
             "}\n"
             "\n";
     }
