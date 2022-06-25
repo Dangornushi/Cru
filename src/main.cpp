@@ -1,27 +1,27 @@
 #include "Main.hpp"
 #include "CRU.hpp"
 
+#include <dirent.h>
 #include <fstream>
 #include <sys/stat.h>
-#include <dirent.h>
 
-/* 
+/*
  * Copyright (c) 2022 Dangomsuhi
  * This software is released under the MIT License, see LICENSE.
-*/
+ */
 
 Main::Main(int n, char *arg[]) {
     langMode = CPP;
     version = "cru ver.0.0.1";
     cmdArg(1, arg, n);
-	debugMode = 1;
+    debugMode = 1;
 }
 
 string splitStr(string s1) {
     string ret;
 
-    for (auto tmp:s1) {
-        if (tmp == '.') 
+    for (auto tmp : s1) {
+        if (tmp == '.')
             return ret;
         ret += tmp;
     }
@@ -29,28 +29,51 @@ string splitStr(string s1) {
 }
 
 void Main::open() {
-	string filedata;
+    string filedata;
 
-	std::ifstream reading_file;
-	reading_file.open(fileName, std::ios::in);
+    std::ifstream reading_file;
+    reading_file.open(fileName, std::ios::in);
 
     while (std::getline(reading_file, filedata))
-		fileData += filedata;
+        fileData += filedata;
     return;
 }
 
-void Main::write() {    
+void Main::write() {
     string fileBuf;
+    string lang;
 
     std::ofstream writing_file;
-    writing_file.open("crucache/" + splitStr(fileName)+".c", std::ios::out);
+    (langMode == PYTHON) ? lang = ".py" : lang = ".c";
+    writing_file.open("crucache/" + splitStr(fileName) + lang, std::ios::out);
     writing_file << runCode;
     writing_file.close();
 }
 
 void Main::run() {
-    string Compiler = "CC";
-    string runCmd = Compiler + " -o crucache/" + splitStr(fileName) + " " + "crucache/" + splitStr(fileName)+".c";
+    string compiler;
+    string option;
+    string compilefile;
+    string outputfile;
+    string runCmd;
+
+    if (langMode == CPP) {
+        compiler = "CC";
+        option = "-o";
+        outputfile = /*"crucache/" + */ splitStr(fileName);
+        compilefile = "crucache/" + splitStr(fileName) + ".c";
+
+        runCmd = compiler + " " + option + " " + outputfile + " " + compilefile;
+    }
+    if (langMode == PYTHON) {
+        compiler = "python3";
+        option = "";
+        outputfile = "";
+        compilefile = /*"crucache/" +*/ splitStr(fileName) + ".py";
+
+        runCmd = compiler + " " + compilefile;
+    }
+
     char *cstr = new char[runCmd.size() + 1]; // メモリ確保
 
     std::char_traits<char>::copy(cstr, runCmd.c_str(), runCmd.size() + 1);
@@ -63,31 +86,45 @@ void Main::cru() {
 
     open();
 
+    if (isEV3 == True) {
+        runCode = "from pybricks import ev3brick as brick"
+                  "\nfrom pybricks.ev3devices import (Motor, TouchSensor, ColorSensor, "
+                  "InfraredSensor, UltrasonicSensor, GyroSensor)"
+                  "\nfrom pybricks.parameters import (Port, Stop, Direction, Button, Color, "
+                  "\n                                     SoundFile, ImageFile, Align)"
+                  "\nfrom pybricks.tools import print, wait, StopWatch"
+                  "\nfrom pybricks.robotics import DriveBase"
+                  "\n\n";
+    }
+
     if (langMode == CPP) {
         char tmp[1];
         runCode = "#include <stdio.h>\n";
         runCode += "#include <string.h>\n\n";
-        runCode +=
-            "int __CRU_Charput(char __s1) {\n\t"
-                "printf(\"%c\", __s1);\n\t"
-                "return 0;\n"
-            "}\n"
-            "int __CRU_Strput(const char *__s1, int __size) {\n\t"
-                "for(size_t __i=0;__i<__size;__i++)\n\t\t"
-                    "__CRU_Charput(__s1[__i]);\n\t"
-                "return 0;\n"
-            "}\n"
-            "int __CRU_Stringput(char *__s1) {\n\t"
-                "printf(\"%s\", __s1);\n\t"
-                "return 0;\n"
-            "}\n"
-            "char *__CRU_Add(char *s1, const char *s2) {\n\t"
-                "char buf[512];\n\t"
-                "sprintf(buf, \"%s%s\", s1, s2);\n\t"
-                "strcpy(s1, buf);\n\t"
-                "return s1;\n"
-            "}\n"
-            "\n";
+        runCode += "int __CRU_Charput(char __s1) {\n\t"
+                   "printf(\"%c\", __s1);\n\t"
+                   "return 0;\n"
+                   "}\n"
+                   "int __CRU_Strput(const char *__s1, int __size) {\n\t"
+                   "for(size_t __i=0;__i<__size;__i++)\n\t\t"
+                   "__CRU_Charput(__s1[__i]);\n\t"
+                   "return 0;\n"
+                   "}\n"
+                   "int __CRU_Stringput(char *__s1) {\n\t"
+                   "printf(\"%s\", __s1);\n\t"
+                   "return 0;\n"
+                   "}\n"
+                   "char *__CRU_Add(char *s1, const char *s2) {\n\t"
+                   "char buf[512];\n\t"
+                   "sprintf(buf, \"%s%s\", s1, s2);\n\t"
+                   "strcpy(s1, buf);\n\t"
+                   "return s1;\n"
+                   "}\n"
+                   "\n";
+    }
+    if (langMode == PYTHON) {
+        runCode += "def _add(s1, s2):\n\t"
+                   "return s1 + s2\n\n";
     }
 
     Lexer lexer;
@@ -100,11 +137,12 @@ void Main::cru() {
                          : runCode += "\nint start(void) {\n\treturn main();\n}";
 
     write();
-    run();
+    if (isRun == True)
+        run();
 }
 
 int isDigit(string s1) {
-    for (int i=0;i<s1.length();i++) {
+    for (int i = 0; i < s1.length(); i++) {
         if (!isdigit(s1[i]))
             return True;
     }
@@ -121,11 +159,20 @@ void Main::cmdArg(int i, char *arg[], int Big) {
             cout << version << endl;
             exit(0);
         } else if (arg[i][1] == 'a') {
-            cout << version << endl;
             i++;
             return cmdArg(i, arg, Big);
         } else if (arg[i][1] == 'p') {
+            isEV3 = False;
             langMode = PYTHON;
+            i++;
+            return cmdArg(i, arg, Big);
+        } else if (arg[i][1] == 'm') {
+            langMode = PYTHON;
+            isEV3 = True;
+            i++;
+            return cmdArg(i, arg, Big);
+        } else if (arg[i][1] == 'r') {
+            isRun = True;
             i++;
             return cmdArg(i, arg, Big);
         } else if (arg[i][1] == '-') {
@@ -136,7 +183,8 @@ void Main::cmdArg(int i, char *arg[], int Big) {
                         "  █       ▄▀    █    █    █  \n"
                         " ▄▀▄▄▄▄▀ █     █      ▀▄▄▄▄▀ \n"
                         "█     ▐  ▐     ▐             \n"
-                        "▐                            \n" << endl;
+                        "▐                            \n"
+                     << endl;
                 exit(0);
             }
         } else {
@@ -150,7 +198,7 @@ void Main::cmdArg(int i, char *arg[], int Big) {
 int main(int argc, char *argcv[]) {
     Main start(argc, argcv);
 
-	start.cru();
+    start.cru();
 
     return 0;
 }
