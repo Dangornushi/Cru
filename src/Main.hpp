@@ -1,8 +1,8 @@
 #pragma once
 
 #include "CRU.hpp"
-#include "Lexer.hpp"
-#include "Node.hpp"
+#include "Lexer/Lexer.hpp"
+#include "Node/Node.hpp"
 
 class Main {
     int compileMode;

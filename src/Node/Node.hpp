@@ -1,6 +1,7 @@
 #pragma once
 
-#include "CRU.hpp"
+#include "../CRU.hpp"
+#include "../Lexer/Lexer.hpp"
 
 #include <cctype>
 

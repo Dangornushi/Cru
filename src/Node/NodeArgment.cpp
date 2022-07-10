@@ -6,7 +6,7 @@ string Node::funcCallArtgment() {
 	string oneArgment;
 
 	while (1) {
-        if (token[tokNumCounter].tokNum== RBRACKET) {
+        if (token[tokNumCounter].tokNum == RBRACKET) {
             break;
 		}
         if (token[tokNumCounter].tokNum == CANMA) {
@@ -33,7 +33,10 @@ string Node::funcDefArtgment() {
 
 	while (1) {
         if (token[tokNumCounter - 1].tokChar[0] == ',' || token[tokNumCounter].tokChar[0] == ')') {
-            returnFunctionArgment += oneArgment[2] + " " + oneArgment[0];
+            if (langMode == CPP) 
+                returnFunctionArgment += oneArgment[2] + " " + oneArgment[0];
+            else if (langMode == PYTHON) 
+                returnFunctionArgment += oneArgment[0];
             returnFunctionArgment += ", ";
 			oneArgment = {};
         }

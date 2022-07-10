@@ -1,6 +1,9 @@
 #include "Node.hpp"
 
+#include <fstream>
+
 string Node::sent() {
+    string ret = funCall();
     switch (token[tokNumCounter].tokNum) {
         case LET: {
             int isMut;
@@ -18,14 +21,17 @@ string Node::sent() {
             } else
                 isMut = False;
 
-            valueName = token[tokNumCounter++].tokChar;
+            valueName = word();
+
+            tokNumCounter++;
 
             expect(":");
 
             tokNumCounter++;
 
-            // if (valMemory.)
-            valueType = token[tokNumCounter++].tokChar;
+            valueType = word();
+
+            tokNumCounter++;
 
             expect("<-");
 
@@ -61,13 +67,21 @@ string Node::sent() {
                 exit(0);
             } else {
                 if (langMode == PYTHON) {
-                    ret = addIndent() + valueName + " = " + data + "\n" + sent();
+                    if (data == "class") {
+                        ret = addIndent() + valueName + " = " + valueType + "()\n" + sent();
+                    }
+                    else {
+                        ret = addIndent() + valueName + " = " + data + "\n" + sent();
+                    }
                 }
                 if (langMode == CPP) {
                     if (valueType == "str") {
                         ret = addIndent() + "char " + valueName + " [] = " + data + ";\n" + sent();
                     } else if (valueType == "string") {
-                        ret = addIndent() + "char *" + valueName + " = " + data + ";\n" + sent();
+                        ret = addIndent() + "__Cru_string " + valueName + " =  _String(" + data + ");\n" + sent();
+
+                    } else if (valueType == "vec") {
+                        ret = addIndent() + "__Cru_Vec_String " + valueName + " =  {" + data + "};\n" + sent();
 
                     } else
                         ret = addIndent() + valueType + " " + valueName + " = " + data + ";\n" +
@@ -99,9 +113,10 @@ string Node::sent() {
             tokNumCounter++;
             expect(";");
             tokNumCounter++;
+            ret += sentS;
             ret += "\n" + addIndent();
             if (langMode == CPP)
-                ret += +"}";
+                ret += "}";
 
             return ret + "\n" + sent();
         } break;
@@ -165,7 +180,7 @@ string Node::sent() {
                 ret = addIndent() + "print(" + data + ")\n";
             }
             if (langMode == CPP) {
-                ret = addIndent() + "__CRU_Stringput(" + data + ");\n";
+                ret = addIndent() + "__CRU_Stringput(&" + data + ");\n";
             }
 
             return ret + sent();
@@ -188,23 +203,52 @@ string Node::sent() {
             expect(";");
             tokNumCounter++;
 
-            return ret + sent();
+            return ret + "\n" + sent();
+
+        } break;
+        case IMPORT: {
+
+            tokNumCounter++;
+            string filedata;
+            string ret;
+
+            std::ifstream reading_file;
+            reading_file.open(token[tokNumCounter].tokChar, std::ios::in);
+
+            while (std::getline(reading_file, filedata))
+                ret += filedata;
+
+            tokNumCounter++;
+
+            expect(";");
+            return ret;
 
         } break;
         case SEMICORON: {
             tokNumCounter++;
             return addIndent() + ";";
-        }
+        } break;
         default: {
-            if (token[tokNumCounter + 1].tokChar == "")
+            if (token[tokNumCounter].tokChar == "}" || token[tokNumCounter + 1].tokChar == "")
                 return "";
-            cout << token[tokNumCounter].tokChar << endl;
-            string ret = addSub();
             tokNumCounter++;
-            expect(";");
             tokNumCounter++;
-            return addIndent() + ret + ";\n" + sent();
+            ret = addIndent() + ret + "\n" +  sent();
+            return ret;
+            /*
+   string ret = "";
+
+   if (token[tokNumCounter].tokNum != RRIPPLE) {
+       ret = token[tokNumCounter].tokChar + ".";
+       tokNumCounter+=2;
+       ret += addSub();
+       tokNumCounter+=2;
+       ret +=sent();
+
+       cout << ret << endl;
+   }
+   return ret;*/
         } break;
     }
-    return "";
+    return ret;
 }

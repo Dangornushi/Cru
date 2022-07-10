@@ -12,7 +12,7 @@
 
 Main::Main(int n, char *arg[]) {
     langMode = CPP;
-    version = "cru ver.0.0.1";
+    version  = "cru ver.0.0.1";
     cmdArg(1, arg, n);
     debugMode = 1;
 }
@@ -58,17 +58,17 @@ void Main::run() {
     string runCmd;
 
     if (langMode == CPP) {
-        compiler = "CC";
-        option = "-o";
-        outputfile = /*"crucache/" + */ splitStr(fileName);
+        compiler    = "CC";
+        option      = "-o";
+        outputfile  = /*"crucache/" + */ splitStr(fileName);
         compilefile = "crucache/" + splitStr(fileName) + ".c";
 
         runCmd = compiler + " " + option + " " + outputfile + " " + compilefile;
     }
     if (langMode == PYTHON) {
-        compiler = "python3";
-        option = "";
-        outputfile = "";
+        compiler    = "python3";
+        option      = "";
+        outputfile  = "";
         compilefile = /*"crucache/" +*/ splitStr(fileName) + ".py";
 
         runCmd = compiler + " " + compilefile;
@@ -86,47 +86,6 @@ void Main::cru() {
 
     open();
 
-    if (isEV3 == True) {
-        runCode = "from pybricks import ev3brick as brick"
-                  "\nfrom pybricks.ev3devices import (Motor, TouchSensor, ColorSensor, "
-                  "InfraredSensor, UltrasonicSensor, GyroSensor)"
-                  "\nfrom pybricks.parameters import (Port, Stop, Direction, Button, Color, "
-                  "\n                                     SoundFile, ImageFile, Align)"
-                  "\nfrom pybricks.tools import print, wait, StopWatch"
-                  "\nfrom pybricks.robotics import DriveBase"
-                  "\n\n";
-    }
-
-    if (langMode == CPP) {
-        char tmp[1];
-        runCode = "#include <stdio.h>\n";
-        runCode += "#include <string.h>\n\n";
-        runCode += "int __CRU_Charput(char __s1) {\n\t"
-                   "printf(\"%c\", __s1);\n\t"
-                   "return 0;\n"
-                   "}\n"
-                   "int __CRU_Strput(const char *__s1, int __size) {\n\t"
-                   "for(size_t __i=0;__i<__size;__i++)\n\t\t"
-                   "__CRU_Charput(__s1[__i]);\n\t"
-                   "return 0;\n"
-                   "}\n"
-                   "int __CRU_Stringput(char *__s1) {\n\t"
-                   "printf(\"%s\", __s1);\n\t"
-                   "return 0;\n"
-                   "}\n"
-                   "char *__CRU_Add(char *s1, const char *s2) {\n\t"
-                   "char buf[512];\n\t"
-                   "sprintf(buf, \"%s%s\", s1, s2);\n\t"
-                   "strcpy(s1, buf);\n\t"
-                   "return s1;\n"
-                   "}\n"
-                   "\n";
-    }
-    if (langMode == PYTHON) {
-        runCode += "def _add(s1, s2):\n\t"
-                   "return s1 + s2\n\n";
-    }
-
     Lexer lexer;
     Node node(langMode);
 
@@ -136,7 +95,10 @@ void Main::cru() {
     (langMode == PYTHON) ? runCode += "\nmain()"
                          : runCode += "\nint start(void) {\n\treturn main();\n}";
 
+    //cout << runCode << endl;
+
     write();
+
     if (isRun == True)
         run();
 }
@@ -161,14 +123,22 @@ void Main::cmdArg(int i, char *arg[], int Big) {
         } else if (arg[i][1] == 'a') {
             i++;
             return cmdArg(i, arg, Big);
-        } else if (arg[i][1] == 'p') {
-            isEV3 = False;
+        } else if (arg[i][1] == 'P') {
+            isEV3    = False;
             langMode = PYTHON;
+            i++;
+            return cmdArg(i, arg, Big);
+        } else if (arg[i][1] == 'C') {
+            langMode = CPP;
+            i++;
+            return cmdArg(i, arg, Big);
+        } else if (arg[i][1] == 'R') {
+            langMode = RUST;
             i++;
             return cmdArg(i, arg, Big);
         } else if (arg[i][1] == 'm') {
             langMode = PYTHON;
-            isEV3 = True;
+            isEV3    = True;
             i++;
             return cmdArg(i, arg, Big);
         } else if (arg[i][1] == 'r') {

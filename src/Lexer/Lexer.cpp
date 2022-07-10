@@ -54,6 +54,12 @@ vector<tokens> Lexer::lex(string fileData) {
             i += LEN_PUT - 1;
             continue;
         }
+        /*===--- self ---=== */
+        if (fileData.substr(i, LEN_SELF) == "self") {
+            token.push_back({SELF, "self"});
+            i += LEN_SELF-1;
+            continue;
+        }
         /*===--- print ---=== */
         if (fileData.substr(i, LEN_PRINT) == "print ") {
             token.push_back({PRINT, "print"});
@@ -73,23 +79,53 @@ vector<tokens> Lexer::lex(string fileData) {
             continue;
         }
         /*===--- <- ---===*/
-		if (fileData.substr(i, 2) == "<-") {
+        if (fileData.substr(i, 2) == "<-") {
             token.push_back({EQ, "<-"});
             i += 2;
             continue;
-		}
-        /*===--- for ---===*/
-		if (fileData.substr(i, LEN_FOR) == "for ") {
-            token.push_back({FOR, "for"});
-            i += LEN_FOR-1;
+        }
+        /*===--- Vec ---===*/
+        if (fileData.substr(i, LEN_VEC) == "Vec") {
+            token.push_back({VEC, "Vec"});
+            i += LEN_VEC-1;
             continue;
-		}
+        }
+        /*===--- for ---===*/
+        if (fileData.substr(i, LEN_FOR) == "for ") {
+            token.push_back({FOR, "for"});
+            i += LEN_FOR - 1;
+            continue;
+        }
+        /*===--- Vec ---===*/
+        if (fileData.substr(i, LEN_PUB) == "pub ") {
+            token.push_back({PUB, "pub"});
+            i += LEN_VEC-1;
+            continue;
+        }
         /*===--- in ---===*/
-		if (fileData.substr(i, LEN_IN) == "in ") {
+        if (fileData.substr(i, LEN_IN) == "in ") {
             token.push_back({IN, "in"});
             i += LEN_IN - 1;
             continue;
-		}
+        }
+        /*===--- import ---=== */
+        if (fileData.substr(i, LEN_IMPORT) == "import ") {
+            token.push_back({IMPORT, "import"});
+            i += LEN_IMPORT - 1;
+            continue;
+        }
+        /*===--- String ---=== */
+        if (fileData.substr(i, LEN_MAC_STRING) == "String") {
+            token.push_back({MAC_STRING, "String"});
+            i += LEN_MAC_STRING - 1;
+            continue;
+        }
+        /*===--- String ---=== */
+        if (fileData.substr(i, LEN_CLASS) == "class ") {
+            token.push_back({CLASS, "class"});
+            i += LEN_CLASS - 1;
+            continue;
+        }
         /*===--- op(MAP : OP) ---=== */
         if (OP.find(nowChar) != OP.end()) {
             token.push_back({OP.find(nowChar)->second, addStr.append(1, nowChar)});
