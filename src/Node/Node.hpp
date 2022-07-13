@@ -22,44 +22,52 @@
 #define I64 8
 
 struct defArg {
-	string type;
-	string name;
+    string type;
+    string name;
 };
 
 struct Type {
-	int len;
-	int isMut;
-	string type;
-	string name;
+    int len;
+    int isMut;
+    string type;
+    string name;
 };
-
 
 struct Node {
 
-	Node(int langMode);
-	vector<tokens> token;
+    Node(int langMode);
+
+    vector<tokens> token;
+    vector<Type> valMemory;
+
+    vector<string> menberFunctions;
+    map<string, string> classAndInstance;
+
     int tokNumCounter;
-	int indent;
-	int ownership;
-	int langMode;
+    int indent;
+    int ownership;
+    int langMode;
+    int isInit;
+    int classEnabled;
 
-	void expect(string str);
-	vector<Type>valMemory;
+    void expect(string str);
+    string selfLet;
+    string nowClassName;
+    string nowInstanceName;
     string addIndent();
-	string parse(vector<tokens> geToken);
+    string parse(vector<tokens> geToken);
 
-	string eval();
-	string loop();
-	string comparison(int i, string ret);
-	string funcDefArtgment();
-	string funcCallArtgment();
+    string eval();
+    string loop();
+    string comparison(int i, string ret);
+    string funcDefArtgment();
+    string funcCallArtgment();
 
     string functionDefinition();
-	string funCall();
-	string sent();
-	string expr();
-	string mulDiv();
-	string addSub();
-	string word();
-
+    string funCall();
+    string sent();
+    string expr();
+    string mulDiv();
+    string addSub();
+    string word();
 };

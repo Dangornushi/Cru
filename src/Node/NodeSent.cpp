@@ -3,7 +3,8 @@
 #include <fstream>
 
 string Node::sent() {
-    string ret = funCall();
+    string ret;
+    ret = funCall();
     switch (token[tokNumCounter].tokNum) {
         case LET: {
             int isMut;
@@ -33,16 +34,20 @@ string Node::sent() {
 
             tokNumCounter++;
 
-            expect("<-");
+            if (token[tokNumCounter].tokChar == "<-") {
+                expect("<-");
 
-            tokNumCounter++;
+                tokNumCounter++;
 
-            data = addSub();
-            tokNumCounter++;
+                data = addSub();
+                tokNumCounter++;
 
-            expect(";");
+                expect(";");
 
-            tokNumCounter++;
+                tokNumCounter++;
+            } else {
+                data = "";
+            }
 
             int hasType;
             hasType = False;
@@ -69,23 +74,44 @@ string Node::sent() {
                 if (langMode == PYTHON) {
                     if (data == "class") {
                         ret = addIndent() + valueName + " = " + valueType + "()\n" + sent();
-                    }
-                    else {
+                    } else if (data != "") {
                         ret = addIndent() + valueName + " = " + data + "\n" + sent();
+                    } else {
                     }
                 }
                 if (langMode == CPP) {
                     if (valueType == "str") {
-                        ret = addIndent() + "char " + valueName + " [] = " + data + ";\n" + sent();
+                        ret = addIndent() + "char " + valueName + " [] = " + data;
                     } else if (valueType == "string") {
-                        ret = addIndent() + "__Cru_string " + valueName + " =  _String(" + data + ");\n" + sent();
+
+                        ret = addIndent() + "__Cru_string " + valueName;
+                        if (data != "") {
+                            ret += " =  _String(" + data + ")";
+                        } else
+                            ;
 
                     } else if (valueType == "vec") {
-                        ret = addIndent() + "__Cru_Vec_String " + valueName + " =  {" + data + "};\n" + sent();
+                        ret = addIndent() + "__Cru_Vec_String " + valueName;
+                        if (data != "") {
+                            ret += " =  {" + data + "}";
+                        } else
+                            ;
+                    } else {
+                        ret = addIndent() + valueType + " " + valueName;
+                        if (data != "") {
+                            ret += " = " + data;
+                        } else {
+                            classAndInstance[valueName] = nowClassName;
+                        }
+                    }
+                    expect(";");
+                    tokNumCounter++;
 
-                    } else
-                        ret = addIndent() + valueType + " " + valueName + " = " + data + ";\n" +
-                              sent();
+                    ret += ";\n" + sent();
+
+                    if (isInit == True) {
+                        selfLet += ret;
+                    }
                 }
             }
 
@@ -150,19 +176,29 @@ string Node::sent() {
         case PUT: {
             string ret;
 
+
             expect("put");
             tokNumCounter++;
-            string data = addSub();
-            tokNumCounter++;
-            expect(";");
+            cout<< token[tokNumCounter].tokChar << endl;
+            string data = funCall();
             tokNumCounter++;
 
             if (langMode == PYTHON) {
                 ret = addIndent() + "print(" + data + ")\n";
             }
-            if (langMode == CPP) {
+            else if (langMode == CPP) {
                 ret = addIndent() + "__CRU_Strput(" + data + ", sizeof(" + data + "));\n";
             }
+
+            if (token[tokNumCounter].tokNum == CANMA) {
+                tokNumCounter++;
+                if (token[tokNumCounter].tokChar == "int") {
+                    ret = addIndent() + "printf(\"%d\"," + data + ");\n";
+                }
+                tokNumCounter++;
+            }
+            expect(";");
+            tokNumCounter++;
 
             return ret + sent();
         } break;
@@ -231,23 +267,21 @@ string Node::sent() {
         default: {
             if (token[tokNumCounter].tokChar == "}" || token[tokNumCounter + 1].tokChar == "")
                 return "";
-            tokNumCounter++;
-            tokNumCounter++;
-            ret = addIndent() + ret + "\n" +  sent();
+            else if (token[tokNumCounter+1].tokChar == "<-") {
+                tokNumCounter++;
+                ret += " = ";
+                tokNumCounter++;
+                ret += funCall();
+                tokNumCounter++;
+                expect(";");
+                tokNumCounter++;
+            }
+            else {
+                tokNumCounter++;
+                tokNumCounter++;
+            }
+            ret = addIndent() + ret + ";\n" + sent();
             return ret;
-            /*
-   string ret = "";
-
-   if (token[tokNumCounter].tokNum != RRIPPLE) {
-       ret = token[tokNumCounter].tokChar + ".";
-       tokNumCounter+=2;
-       ret += addSub();
-       tokNumCounter+=2;
-       ret +=sent();
-
-       cout << ret << endl;
-   }
-   return ret;*/
         } break;
     }
     return ret;

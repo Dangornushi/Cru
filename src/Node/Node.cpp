@@ -1,19 +1,20 @@
 #include "Node.hpp"
 
-#include <sys/stat.h>
 #include <fstream>
+#include <sys/stat.h>
+#include <map>
 
 string parseQuort(const string s1) {
     string ret;
 
-    for (int i=1; i< s1.size()-1;i++)
-       ret += (s1[i]); 
+    for (int i = 1; i < s1.size() - 1; i++)
+        ret += (s1[i]);
     return ret;
 }
 
 Node::Node(int langMode) {
     this->langMode = langMode;
-    this->indent = 0;
+    this->indent   = 0;
 }
 
 // loop to the end of file.
@@ -108,14 +109,26 @@ string Node::funCall() {
 
         tokNumCounter++;
         string argment = funcCallArtgment();
+        if (classEnabled == True) {
+            (argment == "") ? argment = "&" + nowInstanceName : argment = "&" + nowInstanceName + ", " + argment;
+        } else {}
         expect(")");
         ret = funcName + "(" + argment + ")";
         return ret;
-    }
-    else if (token[tokNumCounter + 1].tokNum == PERIOD) {
+    } else if (token[tokNumCounter + 1].tokNum == PERIOD &&
+               token[tokNumCounter + 3].tokNum == LBRACKET) {
+        classEnabled = True;
         string ret = token[tokNumCounter++].tokChar;
+        nowInstanceName = ret;
+        expect(".");
         tokNumCounter++;
-        ret += "." + funCall();
+        if (langMode == CPP) {
+            ret = classAndInstance[ret] + funCall();
+        }
+        else if (langMode == PYTHON) {
+            ret += "." + funCall();
+        }
+        classEnabled = False;
         return ret;
     }
     return expr();
@@ -147,7 +160,8 @@ string Node::word() {
         tokNumCounter++;
         expect(".");
         tokNumCounter++;
-        ret = "self." + token[tokNumCounter].tokChar;
+        ret = "self->" + token[tokNumCounter].tokChar;
+        //tokNumCounter++;
 
     } else {
         ret = token[tokNumCounter].tokChar;
@@ -186,7 +200,8 @@ string Node::loop() {
     tokNumCounter++;
 
     if (langMode == CPP)
-        ret = "int " + doValue + " = " + iterate_1 + "; " + doValue + " < " + iterate_2 + "; " + doValue + "++";
+        ret = "int " + doValue + " = " + iterate_1 + "; " + doValue + " < " + iterate_2 + "; " +
+              doValue + "++";
     if (langMode == PYTHON)
         ret = doValue + " in range(" + iterate_2 + " - " + iterate_1 + ") ";
     return ret;

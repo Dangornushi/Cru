@@ -61,14 +61,14 @@ string Node::functionDefinition() {
 
         valMemory.push_back({0, False, Type, Name});
 
-        (langMode == PYTHON) ? ret = "def " + Name + " (" + argment + ") :\n" +
-                                     Data + functionDefinition() + "\n"
-                             : ret = Type + " " + Name + " (" + argment + ") {\n" +
-                                     Data + "\n}" + functionDefinition();
+        (langMode == PYTHON)
+            ? ret = "def " + Name + " (" + argment + ") :\n" + Data + functionDefinition() + "\n"
+            : ret = Type + " " + Name + " (" + argment + ") {\n" + Data + "\n}" +
+                    functionDefinition();
 
         return ret;
-    }
-    else if (token[tokNumCounter].tokNum == CLASS) {
+    } else if (token[tokNumCounter].tokNum == CLASS) {
+
         expect("class");
         tokNumCounter++;
 
@@ -76,26 +76,55 @@ string Node::functionDefinition() {
 
         expect("{");
 
+        string selfData = "";
+
         tokNumCounter++;
 
-        indent++;
+        classEnabled = True;
+        nowClassName = Name;
 
-        Data = functionDefinition();
+        (langMode == PYTHON) ? indent++ : 1;
+
+        if (token[tokNumCounter].tokNum == SELF) {
+
+            expect("self");
+
+            tokNumCounter++;
+            expect("{");
+            tokNumCounter++;
+
+            isInit   = True;
+            selfData = sent();
+
+            if (langMode == PYTHON) {
+                Data = addIndent() + "def __init__(self):\n\t" + selfData + "\n\n";
+            } else if (langMode == CPP)
+                ;
+
+            expect("}");
+
+            tokNumCounter++;
+        }
+
+        classEnabled = False;
+
+        Data += functionDefinition();
+
+        (langMode == PYTHON) ? indent-- : 1;
 
         indent--;
-
         expect("}");
 
         tokNumCounter++;
 
         valMemory.push_back({0, False, Type, Name});
 
-        (langMode == PYTHON) ? ret = "class " + Name + argment + ":\n\n" + Data + functionDefinition()
-                             : ret = Type + " " + Name + " (" + argment + ") {\n" + Data + "\n}" + functionDefinition();
+        (langMode == PYTHON)
+            ? ret = "class " + Name + argment + ":\n\n" + Data
+            : ret = "typedef struct {\n" + selfData + "\n} " + Name + ";\n" + Data + "\n\n";
 
-        return ret;
-    }
-    else if (token[tokNumCounter].tokNum == PUB) {
+        return ret + functionDefinition();
+    } else if (token[tokNumCounter].tokNum == PUB) {
 
         expect("pub");
         tokNumCounter++; // fn
@@ -109,8 +138,9 @@ string Node::functionDefinition() {
 
         if (token[tokNumCounter].tokNum == LBRACKET) {
             tokNumCounter++; // (
-            if (token[tokNumCounter].tokNum != RBRACKET)
+            if (token[tokNumCounter].tokNum != RBRACKET) {
                 argment = ", " + funcDefArtgment();
+            }
             tokNumCounter++; // )
         }
 
@@ -122,7 +152,7 @@ string Node::functionDefinition() {
 
         string Fsent;
 
-        Fsent = "fn " + Name + "(" + argment + ") : ";
+        Fsent = "pub fn " + Name + "(" + argment + ") : ";
 
         if (Type == "auto") {
             cout << Fsent + Type << endl;
@@ -150,12 +180,15 @@ string Node::functionDefinition() {
 
         valMemory.push_back({0, False, Type, Name});
 
-        (langMode == PYTHON) ? ret = addIndent() + "def " + Name + " (self" + argment + "):\n" +
-                                     Data+ "\n" + functionDefinition() + "\n"
-                             : ret = Type + " " + Name + " (" + argment + ") {\n" +
-                                     Data + "\n}" + functionDefinition();
+        (langMode == PYTHON)
+            ? ret = addIndent() + "def " + Name + " (self" + argment + "):\n" + Data + "\n" +
+                    functionDefinition() + "\n"
+            : ret = Type + " " + nowClassName + Name + " (" + nowClassName + " *self" + argment +
+                    ") {\n" + Data + "\n}" + functionDefinition();
+        if (classEnabled == True) {
+            argment += argment + "";
+        }
         return ret;
-
     }
     return "";
 }

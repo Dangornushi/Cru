@@ -95,7 +95,7 @@ void Main::cru() {
     (langMode == PYTHON) ? runCode += "\nmain()"
                          : runCode += "\nint start(void) {\n\treturn main();\n}";
 
-    //cout << runCode << endl;
+    // cout << runCode << endl;
 
     write();
 
