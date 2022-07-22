@@ -120,10 +120,16 @@ vector<tokens> Lexer::lex(string fileData) {
             i += LEN_MAC_STRING - 1;
             continue;
         }
-        /*===--- String ---=== */
+        /*===--- class ---=== */
         if (fileData.substr(i, LEN_CLASS) == "class ") {
             token.push_back({CLASS, "class"});
             i += LEN_CLASS - 1;
+            continue;
+        }
+        /*===--- enum ---=== */
+        if (fileData.substr(i, LEN_ENUM) == "enum ") {
+            token.push_back({ENUM, "enum"});
+            i += LEN_ENUM - 1;
             continue;
         }
         /*===--- op(MAP : OP) ---=== */

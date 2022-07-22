@@ -12,6 +12,7 @@
 #define LEN_PUT 4
 #define LEN_SELF 4
 #define LEN_MUT 5
+#define LEN_ENUM 5
 #define LEN_ELSE 5
 #define LEN_ELIF 5
 #define LEN_CALL 2
@@ -50,6 +51,7 @@ enum RESERV {
     IMPORT,
     MAC_STRING,
     CLASS,
+    ENUM,
 
     /* TYPE AND VARs */
     WORD,
@@ -82,6 +84,7 @@ enum RESERV {
     ADDRESS,
     LSQBRACKET,
     RSQBRACKET,
+    ATSIGN,
  //   HASHTAG,
 };
 
@@ -108,7 +111,7 @@ class Lexer {
         {'/', DIV},
         {'~', TILDE},
         {'&', ADDRESS},
-//        {'#', HASHTAG},
+        {'@', ATSIGN},
     };
 
   public:

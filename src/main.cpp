@@ -11,7 +11,7 @@
  */
 
 Main::Main(int n, char *arg[]) {
-    langMode = CPP;
+    langMode = LLIR;
     version  = "cru ver.0.0.1";
     cmdArg(1, arg, n);
     debugMode = 1;
@@ -44,8 +44,16 @@ void Main::write() {
     string lang;
 
     std::ofstream writing_file;
-    (langMode == PYTHON) ? lang = ".py" : lang = ".c";
-    writing_file.open("crucache/" + splitStr(fileName) + lang, std::ios::out);
+    if (langMode == PYTHON)
+        lang = ".py";
+    else if (langMode == CPP)
+        lang = ".c";
+    else if (langMode == RUST)
+        lang = ".rs";
+    else if (langMode == LLIR)
+        lang = ".ll";
+
+    writing_file.open(splitStr(fileName) + lang, std::ios::out);
     writing_file << runCode;
     writing_file.close();
 }
@@ -65,7 +73,7 @@ void Main::run() {
 
         runCmd = compiler + " " + option + " " + outputfile + " " + compilefile;
     }
-    if (langMode == PYTHON) {
+    else if (langMode == PYTHON) {
         compiler    = "python3";
         option      = "";
         outputfile  = "";
@@ -73,7 +81,20 @@ void Main::run() {
 
         runCmd = compiler + " " + compilefile;
     }
+    else if (langMode == RUST) {
+        compiler    = "";
+        option      = "";
+        outputfile  = "";
+        compilefile = /*"crucache/" +*/ splitStr(fileName) + ".rs";
 
+        runCmd = "cargo bootimage && qemu-system-x86_64 -drive format=raw,file=../target/x86_64-CRU_os/debug/bootimage-CRU_os.bin";
+    }
+    else if (langMode == LLIR) {
+        outputfile  = splitStr(fileName);
+        compilefile = splitStr(fileName) + ".ll";
+
+        runCmd = "llc " + compilefile + "; clang " + outputfile + ".s -o " + outputfile ;
+    }
     char *cstr = new char[runCmd.size() + 1]; // メモリ確保
 
     std::char_traits<char>::copy(cstr, runCmd.c_str(), runCmd.size() + 1);
@@ -92,10 +113,14 @@ void Main::cru() {
     token = lexer.lex(fileData);
     runCode += node.parse(token);
 
-    (langMode == PYTHON) ? runCode += "\nmain()"
-                         : runCode += "\nint start(void) {\n\treturn main();\n}";
+    runCode = node.strDefine + "\n" + runCode + "\n" + node.functionDefine;
 
-    // cout << runCode << endl;
+    if (langMode == CPP) {
+        runCode += "\nint start(void) {\n\treturn main();\n}";
+    }
+    else if (langMode == PYTHON) {
+        runCode += "\nmain()";
+    }
 
     write();
 
@@ -156,6 +181,9 @@ void Main::cmdArg(int i, char *arg[], int Big) {
                         "▐                            \n"
                      << endl;
                 exit(0);
+            } else if (!strcmp(arg[i], "--os")) {
+                isOS = True;
+                return cmdArg(i, arg, Big);
             }
         } else {
             cout << "Unknown option '" << arg[i] << "'." << endl;

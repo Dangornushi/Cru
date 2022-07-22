@@ -11,6 +11,8 @@ string Node::functionDefinition() {
 
     if (token[tokNumCounter].tokNum == FN) {
 
+        int nowRegNum = registerAmount;
+
         expect("fn");
         tokNumCounter++; // fn
 
@@ -20,8 +22,11 @@ string Node::functionDefinition() {
 
         if (token[tokNumCounter].tokNum == LBRACKET) {
             tokNumCounter++; // (
-            if (token[tokNumCounter].tokNum != RBRACKET)
+            if (token[tokNumCounter].tokNum != RBRACKET)  {
+                registerAmount = 0;
                 argment = funcDefArtgment();
+            }
+            expect(")");
             tokNumCounter++; // )
         }
 
@@ -36,12 +41,19 @@ string Node::functionDefinition() {
         Fsent = "fn " + Name + "(" + argment + ") : ";
 
         if (Type == "auto") {
-            cout << Fsent + Type << endl;
-            ;
             for (int i = 0; i < Fsent.length(); i++)
                 cout << " " << std::flush;
             cout << "^ Can't use 'auto' for function return value." << endl;
         }
+
+        if (Type == "int" && langMode == RUST) {
+            Type = "usize";
+        }
+        else if (Type == "int" && langMode == LLIR) {
+            Type = "i32";
+        }
+
+        nowType = Type;
 
         tokNumCounter++;
 
@@ -51,7 +63,11 @@ string Node::functionDefinition() {
 
         indent++;
 
+        string FDQ = std::to_string(funcDefQuantity++);
+
         Data = sent();
+
+        registerAmount = nowRegNum;
 
         indent--;
 
@@ -61,18 +77,54 @@ string Node::functionDefinition() {
 
         valMemory.push_back({0, False, Type, Name});
 
-        (langMode == PYTHON)
-            ? ret = "def " + Name + " (" + argment + ") :\n" + Data + functionDefinition() + "\n"
-            : ret = Type + " " + Name + " (" + argment + ") {\n" + Data + "\n}" +
-                    functionDefinition();
+        switch (langMode) {
+            case PYTHON:
+                ret += "def " + Name + " (" + argment + ") :\n" + Data + functionDefinition() + "\n";
+                break;
 
+            case CPP:
+                ret += Type + " " + Name + " (" + argment + ") {\n" + Data + "\n}" +
+                       functionDefinition();
+                break;
+
+            case RUST: {
+                ret += ret += "fn " + Name;
+                if (Name == "main")
+                    ret += " (boot_info: &'static BootInfo) -> ! {" + Data + "\n\tloop{}\n}\n\n";
+                else
+                    ret += "(" + argment + ") ->" + Type + " {\n" + Data + "\n}\n\n";
+                ret += functionDefinition();
+            } break;
+
+            case LLIR: {
+                indent++;
+                ret +=
+                    "define " + Type + " @" + Name + "(" + argment + ") #" + FDQ +" {\nentry:\n" + Data + "}\n\n";
+                ret += functionDefinition();
+                indent--;
+            } break;
+
+            default:
+                exit(1);
+            break;
+        }
         return ret;
     } else if (token[tokNumCounter].tokNum == CLASS) {
+        string overRide;
 
         expect("class");
         tokNumCounter++;
 
         Name = token[tokNumCounter++].tokChar;
+
+        if (token[tokNumCounter].tokChar == "(") {
+            tokNumCounter++;
+            overRide = " (" + token[tokNumCounter].tokChar + ")";
+            tokNumCounter++;
+            expect(")");
+            tokNumCounter++;
+        }
+        else ;
 
         expect("{");
 
@@ -119,9 +171,13 @@ string Node::functionDefinition() {
 
         valMemory.push_back({0, False, Type, Name});
 
-        (langMode == PYTHON)
-            ? ret = "class " + Name + argment + ":\n\n" + Data
-            : ret = "typedef struct {\n" + selfData + "\n} " + Name + ";\n" + Data + "\n\n";
+        if (langMode == PYTHON) {
+            ret = "class " + Name + argment + ":\n\n" + Data;
+        } else if (langMode == CPP) {
+            ret = "typedef struct {\n" + selfData + "\n} " + Name + ";\n" + Data + "\n\n";
+        } else if (langMode == RUST) {
+            ret = "struct " + Name + overRide;
+        }
 
         return ret + functionDefinition();
     } else if (token[tokNumCounter].tokNum == PUB) {
@@ -188,6 +244,30 @@ string Node::functionDefinition() {
         if (classEnabled == True) {
             argment += argment + "";
         }
+        return ret;
+    } else if (token[tokNumCounter].tokNum == ENUM) {
+        tokNumCounter++;
+        ret = token[tokNumCounter].tokChar;
+        tokNumCounter++;
+        expect("{");
+        tokNumCounter++;
+        indent++;
+        enumEnabled = True;
+        ret = "pub enum " + ret + " {\n" + sent() + "}\n";
+        enumEnabled = False;
+        indent--;
+        expect("}");
+        tokNumCounter++;
+        ret += functionDefinition();
+        return ret;
+    } else if (token[tokNumCounter].tokNum == ATSIGN) {
+        expect("@");
+        tokNumCounter++;
+        ret = funCall(); 
+        tokNumCounter++;
+        expect(";");
+        tokNumCounter++;
+        ret = "#[" + ret + "]\n" + functionDefinition();
         return ret;
     }
     return "";

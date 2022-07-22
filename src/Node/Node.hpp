@@ -42,18 +42,33 @@ struct Node {
 
     vector<string> menberFunctions;
     map<string, string> classAndInstance;
+    map<string, int> llirReg;
+    map<string, string> typeSize;
+    map<string, string> llirType;
+    map<string, string> regType;
 
     int tokNumCounter;
     int indent;
     int ownership;
     int langMode;
-    int isInit;
     int classEnabled;
+    int enumEnabled;
+    int isInit;
+    int inArray;
+    int registerAmount;
+    int strAmount;
+    int putDefExists;
+    int funcDefQuantity;
 
     void expect(string str);
     string selfLet;
     string nowClassName;
     string nowInstanceName;
+    string nowType;
+    string LLIRnowVar;
+    string strDefine;
+    string loads;
+    string functionDefine;
     string addIndent();
     string parse(vector<tokens> geToken);
 
@@ -66,6 +81,7 @@ struct Node {
     string functionDefinition();
     string funCall();
     string sent();
+    string move();
     string expr();
     string mulDiv();
     string addSub();

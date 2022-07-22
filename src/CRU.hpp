@@ -16,6 +16,7 @@ using std::map;
 #define PYTHON 0
 #define CPP 1
 #define RUST 2
+#define LLIR 3
 
 
 int isDigit(string s1);

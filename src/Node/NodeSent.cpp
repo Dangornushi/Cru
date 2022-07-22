@@ -13,6 +13,7 @@ string Node::sent() {
             string valueType;
             string data;
             string ret;
+            string vecType;
 
             expect("let");
             tokNumCounter++;
@@ -34,20 +35,50 @@ string Node::sent() {
 
             tokNumCounter++;
 
+            if (token[tokNumCounter].tokChar == "<") {
+                tokNumCounter++;
+                vecType = token[tokNumCounter].tokChar;
+                tokNumCounter++;
+                expect(">");
+                tokNumCounter++;
+            }
+
+            if (valueType == "int") {
+                valueType = "i32";
+            }
+            
+            llirType.insert_or_assign(valueName, valueType);
+
             if (token[tokNumCounter].tokChar == "<-") {
                 expect("<-");
 
                 tokNumCounter++;
 
-                data = addSub();
-                tokNumCounter++;
+                if (token[tokNumCounter].tokChar == "{") {
+                    tokNumCounter++;
 
-                expect(";");
+                    data = "{" + funcCallArtgment() + "}";
 
-                tokNumCounter++;
+                    expect("}");
+                    tokNumCounter++;
+                }
+
+                else {
+                    data = addSub();
+                    tokNumCounter++;
+                }
             } else {
-                data = "";
+                string regNum = std::to_string(registerAmount);
+                string size   = typeSize[valueType];
+                ret = addIndent() + "%" + regNum + " = alloca " + valueType + ", align " + size + "\n";
+                llirReg.insert_or_assign(valueName, registerAmount++);
+                regType.insert_or_assign("%" + regNum, valueType);
+                expect(";");
+                tokNumCounter++;
+
+                return ret += sent();
             }
+
 
             int hasType;
             hasType = False;
@@ -73,29 +104,27 @@ string Node::sent() {
             } else {
                 if (langMode == PYTHON) {
                     if (data == "class") {
-                        ret = addIndent() + valueName + " = " + valueType + "()\n" + sent();
+                        ret = addIndent() + valueName + " = " + valueType + "()\n";
                     } else if (data != "") {
-                        ret = addIndent() + valueName + " = " + data + "\n" + sent();
+                        ret = addIndent() + valueName + " = " + data + "\n";
                     } else {
                     }
                 }
-                if (langMode == CPP) {
-                    if (valueType == "str") {
-                        ret = addIndent() + "char " + valueName + " [] = " + data;
-                    } else if (valueType == "string") {
-
-                        ret = addIndent() + "__Cru_string " + valueName;
+                else if (langMode == CPP) {
+                    if (valueType == "string") {
+                       ret = addIndent() + "__Cru_string " + valueName;
                         if (data != "") {
-                            ret += " =  _String(" + data + ")";
+                            ret += " = " + data ;
                         } else
                             ;
 
                     } else if (valueType == "vec") {
-                        ret = addIndent() + "__Cru_Vec_String " + valueName;
-                        if (data != "") {
-                            ret += " =  {" + data + "}";
-                        } else
-                            ;
+                        ret += "__Cru_Vec_" + vecType + " " + valueName;
+                        if (vecType == "string") {
+                            if (data != "") {
+                                ret += " = {"+ data +"}";
+                            }
+                        }
                     } else {
                         ret = addIndent() + valueType + " " + valueName;
                         if (data != "") {
@@ -104,15 +133,31 @@ string Node::sent() {
                             classAndInstance[valueName] = nowClassName;
                         }
                     }
-                    expect(";");
-                    tokNumCounter++;
 
-                    ret += ";\n" + sent();
+                    ret += ";\n";
 
                     if (isInit == True) {
                         selfLet += ret;
                     }
                 }
+                else if (langMode == LLIR) {
+                    string regNum = std::to_string(registerAmount);
+                    string size = typeSize[valueType];
+                    if (LLIRnowVar == "") {
+                    }
+                    else {
+                        ret = addIndent() + data + "\n"; 
+                        LLIRnowVar = data;
+                    }
+                    ret += addIndent() + "%" + regNum + " = alloca " + valueType + ", align " + size + "\n" ; 
+                    ret += addIndent() + "store " + valueType + " " + LLIRnowVar+ ", " + valueType + "* %" + regNum + ", align " + size + "\n";
+                    llirReg.insert_or_assign(valueName, registerAmount++);
+                    regType.insert_or_assign("%" + regNum, valueType);
+                }
+                expect(";");
+                tokNumCounter++;
+
+                ret += sent();
             }
 
             return ret;
@@ -122,24 +167,76 @@ string Node::sent() {
             string ret;
             string evalS;
             string sentS;
+            string elseS;
+            string r1;
+            string r2;
+            string r3;
 
             expect("if");
             tokNumCounter++;
             evalS = eval();
             if (langMode == PYTHON)
                 ret = addIndent() + "if " + evalS + ":\n";
-            if (langMode == CPP)
+            else if (langMode == CPP)
                 ret = addIndent() + "if (" + evalS + ") {\n";
+            else if (langMode == LLIR)
+                ret = evalS;
             expect("{");
             tokNumCounter++;
-            indent++;
-            sentS = sent();
-            indent--;
+            if (langMode == LLIR) {
+                registerAmount--;
+
+                r1 = "%" + std::to_string(registerAmount++);
+                r2 = "%" + std::to_string(registerAmount++);
+
+                sentS = sent();
+
+                r3 = "%" + std::to_string(registerAmount++);
+            }
+            else {
+                indent++;
+
+                sentS = sent();
+
+                indent--;
+            }
             expect("}");
             tokNumCounter++;
             expect(";");
             tokNumCounter++;
-            ret += sentS;
+            if (langMode == LLIR) {
+                /*
+                 * if -> if data -> else -> else data
+                 */
+                string tmpR2 = {r2[1]};
+                string tmpR3 = {r3[1]};
+
+                ret += addIndent() + "br i1 " + r1 + ", label " + r2 + ", label " + r3 + "\n\n";
+
+                if (token[tokNumCounter].tokChar == "else") {
+                    tokNumCounter++;
+                    expect("{");
+                    tokNumCounter++;
+                    elseS =  sent();
+                    expect("}");
+                    tokNumCounter++;
+                    expect(";");
+                    tokNumCounter++;
+
+                    r3 = std::to_string(registerAmount++);
+
+                    ret += tmpR2 + ":    ; preds = %" + tmpR2 + "\n" + sentS +addIndent() + "br label %" + r3 + "\n";
+                    ret += tmpR3 + ":    ; preds = %" + tmpR3 + "\n" ;
+
+                    ret += elseS + "\n" + addIndent() + "br label %" + r3 + "\n";
+                    ret += r3 + ":    ; preds = %" + r3 + "\n";
+                } else {
+                    ret += tmpR2 + ":    ; preds = %" + tmpR2 + "\n" + sentS +addIndent() + "br label %" + tmpR3 + "\n";
+                    ret += tmpR3 + ":    ; preds = %" + tmpR3 + "\n" ;
+                }
+            } else {
+                ret += sentS;
+            }
             ret += "\n" + addIndent();
             if (langMode == CPP)
                 ret += "}";
@@ -179,7 +276,6 @@ string Node::sent() {
 
             expect("put");
             tokNumCounter++;
-            cout<< token[tokNumCounter].tokChar << endl;
             string data = funCall();
             tokNumCounter++;
 
@@ -189,11 +285,42 @@ string Node::sent() {
             else if (langMode == CPP) {
                 ret = addIndent() + "__CRU_Strput(" + data + ", sizeof(" + data + "));\n";
             }
+            else if (langMode == LLIR) {
+                string loadR1 = "%" + std::to_string(registerAmount++);
+                string loadR2 = "%" + std::to_string(registerAmount++);
+                string loadR3 = "%" + std::to_string(registerAmount++);
+                string printfR;
+                string size = typeSize[regType[data]];
+                
+                strDefine += "@.str." + std::to_string(strAmount) + " = private unnamed_addr constant [3 x i8] c\"\%d\\00\", align ";
+                if (size != "") 
+                    strDefine += size + "\n";
+                else 
+                    strDefine += "4\n";
+
+                if (regType[data] != "") {
+                    ret =  addIndent() + loadR1 + " = load " + regType[data] + ", " + regType[data] + "* " + data + ", align " + typeSize[regType[data]] + "\n";
+                }
+                else {
+                    ret += addIndent() + loadR1 + " = alloca i32, align 4\n" ; 
+                    ret += addIndent() + "store i32 " + data + ", i32* " + loadR1 + ", align 4\n";
+                    ret += addIndent() + loadR2 + " = load i32, i32* " + loadR1 + ", align 4\n" ; 
+                }
+                ret += addIndent() + loadR3 + " = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds ([3 x i8], [3 x i8]* @.str." + std::to_string(strAmount++) +", i64 0, i64 0), i32 noundef " + loadR2+ ")\n"; 
+                if (putDefExists == False) {
+                    functionDefine += "declare i32 @printf(i8* noundef, ...) #" + std::to_string(funcDefQuantity++);
+                }
+                else ;
+                putDefExists = True;
+            }
 
             if (token[tokNumCounter].tokNum == CANMA) {
                 tokNumCounter++;
                 if (token[tokNumCounter].tokChar == "int") {
                     ret = addIndent() + "printf(\"%d\"," + data + ");\n";
+                }
+                else if (token[tokNumCounter].tokChar == "vec") {
+                    ret = addIndent() + "__Cru_Vec_string_put(&" + data +");\n";
                 }
                 tokNumCounter++;
             }
@@ -230,8 +357,20 @@ string Node::sent() {
             if (langMode == PYTHON) {
                 ret = addIndent() + "return " + addSub();
             }
-            if (langMode == CPP) {
+            else if (langMode == CPP) {
                 ret = addIndent() + "return " + addSub() + ";";
+            }
+            else if (langMode == LLIR) {
+                string data = addSub();
+                string type = regType[data];
+                if (type == "") {
+                    ret += addIndent() + "ret " + nowType + " " + data;
+                } else {
+                    ret = addIndent() + "%" + std::to_string(registerAmount) + " = load " + type +
+                          ", " + type + "* " + data + ", align " + typeSize[regType[data]] + "\n";
+                    ret += addIndent() + "ret " + nowType + " %" + std::to_string(registerAmount);
+                    registerAmount++;
+                }
             }
 
             // tokNumCounter++;
@@ -267,11 +406,89 @@ string Node::sent() {
         default: {
             if (token[tokNumCounter].tokChar == "}" || token[tokNumCounter + 1].tokChar == "")
                 return "";
-            else if (token[tokNumCounter+1].tokChar == "<-") {
+            else if (token[tokNumCounter+1].tokNum == PLUS) { 
+                string var = word(); 
+                string loadR = "%" + std::to_string(registerAmount++);
+                string storeR = "%" + std::to_string(registerAmount++);
+
                 tokNumCounter++;
-                ret += " = ";
+                expect("+");
                 tokNumCounter++;
-                ret += funCall();
+                expect("+");
+                tokNumCounter++;
+                expect(";");
+                tokNumCounter++;
+
+                if (langMode == LLIR) {
+                    ret = addIndent() + loadR + " = load i32, i32* " + var + ", align 4\n";
+                    ret += addIndent() + storeR + " = add nsw i32 " + loadR + ", 1\n";
+                    ret += addIndent() + "store i32 " + storeR + ", i32* " + var + ", align 4\n";
+                }
+                return ret + sent();
+            } else if (token[tokNumCounter+1].tokNum == MIN) { 
+                string var = word(); 
+                string loadR = "%" + std::to_string(registerAmount++);
+                string storeR = "%" + std::to_string(registerAmount++);
+
+                tokNumCounter++;
+                expect("-");
+                tokNumCounter++;
+                expect("-");
+                tokNumCounter++;
+                expect(";");
+                tokNumCounter++;
+
+                if (langMode == LLIR) {
+                    ret = addIndent() + loadR + " = load i32, i32* " + var + ", align 4\n";
+                    ret += addIndent() + storeR + " = sub nsw i32 " + loadR + ", 1\n";
+                    ret += addIndent() + "store i32 " + storeR + ", i32* " + var + ", align 4\n";
+                }
+                return ret + sent();
+            } else if (token[tokNumCounter+1].tokChar == "<-") {
+                tokNumCounter++;
+                tokNumCounter++;
+                if (token[tokNumCounter].tokChar == "{") {
+                    tokNumCounter++;
+                    inArray = True;
+                    ret = "char *__tmp[] = {" +  funcCallArtgment() + "};\n" + ret + " = _Vec(__tmp)";
+                    inArray = False;
+                    expect("}");
+                }
+                else {
+                    if (langMode == LLIR) {
+                        string data = funCall();
+                        string size = typeSize[regType[ret]];
+                        if (regType.find(data) != regType.end()) {
+                            string type = regType[data];
+                            string size = typeSize[regType[data]];
+                            string data = addSub();
+                            string tmpReg = "%" + std::to_string(registerAmount);
+                            string mainReg = ret;
+
+//                            registerAmount++;
+
+                            string tmp = "%" + std::to_string(registerAmount);
+
+                            ret = data;
+//                            ret += addIndent() + tmp + " = load " + type + ", " + type + "* " + tmpReg + ", align " + size + "\n";
+                            ret += addIndent() + "store " + type + " " + tmp + ", " + type + "* " + mainReg + ", align " + size + "\n";
+
+                            llirReg.insert_or_assign(tmp, registerAmount);
+                            regType.insert_or_assign("%" + std::to_string(registerAmount++), "i32");
+
+                        } else {
+                            ret = addIndent() + "store " + regType[ret] + " " + data + ", " + regType[ret] + "* " + ret + ", align " + size + "\n";
+                        }
+                        tokNumCounter++;
+                        expect(";");
+                        tokNumCounter++;
+                        ret += sent();
+                        return ret;
+                    } else {
+                        ret += " = " + funCall();
+                    }
+                }
+
                 tokNumCounter++;
                 expect(";");
                 tokNumCounter++;
@@ -280,7 +497,18 @@ string Node::sent() {
                 tokNumCounter++;
                 tokNumCounter++;
             }
-            ret = addIndent() + ret + ";\n" + sent();
+            ret = addIndent() + ret;
+            if (enumEnabled == True)
+                ret += ",\n";
+            else {
+                if (langMode == LLIR) {
+                    ret += "\n";
+                } else {
+                    ret += ";\n";
+                }
+            }
+
+            ret += sent();
             return ret;
         } break;
     }

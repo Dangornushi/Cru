@@ -21,6 +21,7 @@ class Main {
 
     int isEV3;
     int isRun;
+    int isOS;
 
     void open();
     void write();
