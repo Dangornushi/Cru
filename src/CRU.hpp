@@ -29,4 +29,9 @@ struct tokens{
 	string tokChar;
 };
 
+struct reg {
+	string regName;
+	string type;
+	string typeSize;
+};
 

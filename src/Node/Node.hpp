@@ -49,19 +49,15 @@ struct Node {
 
     int tokNumCounter;
     int indent;
-    int ownership;
     int langMode;
     int classEnabled;
     int enumEnabled;
-    int isInit;
-    int inArray;
     int registerAmount;
     int strAmount;
     int putDefExists;
     int funcDefQuantity;
 
     void expect(string str);
-    string selfLet;
     string nowClassName;
     string nowInstanceName;
     string nowType;
@@ -79,9 +75,8 @@ struct Node {
     string funcCallArtgment();
 
     string functionDefinition();
-    string funCall();
+    string funCall(string instanceName);
     string sent();
-    string move();
     string expr();
     string mulDiv();
     string addSub();

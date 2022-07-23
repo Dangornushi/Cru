@@ -1,4 +1,5 @@
 #include "Node.hpp"
+#include "../generator/Generate.hpp"
 
 #include <fstream>
 #include <memory>
@@ -26,6 +27,7 @@ Node::Node(int langMode) {
     };
     this->strAmount = 0;
     this->funcDefQuantity = 0;
+    this->putDefExists = False;
 }
 
 // loop to the end of file.
@@ -52,6 +54,7 @@ string Node::parse(vector<tokens> geToken) {
 
         tokNumCounter++;
     }
+
     write += functionDefinition();
 
     return write;
@@ -66,14 +69,15 @@ void Node::expect(string str) {
 string Node::addIndent() {
     string ret = "";
     for (int i = 0; i < indent; i++)
-        ret += "\t";
+        ret += "    ";
     return ret;
 }
 
 string Node::addSub() {
     string ret = mulDiv();
+    int nextWord = token[tokNumCounter + 1].tokNum;
 
-    if (token[tokNumCounter + 1].tokNum == PLUS) {
+    if (nextWord == PLUS || nextWord == MIN) {
         tokNumCounter += 2;
         string s2 = addSub();
         if (!isDigit(ret) && !isDigit(s2)) {
@@ -82,39 +86,28 @@ string Node::addSub() {
 
         if (langMode == LLIR) {
             string type = regType[ret];
-            ret = addIndent() + "%" + std::to_string(registerAmount) + " = load " + type +", " + type + "* " + ret + ", align " + typeSize[type] + "\n";   
-            registerAmount++;
-            ret += addIndent() + "%" + std::to_string(registerAmount) +" = add nsw i32 " + "%" + std::to_string(registerAmount-1) + ", " + s2 + "\n";
+            reg r1 = {ret, type, typeSize[type]};
+            reg r2 = {"%" + std::to_string(registerAmount-1), type, typeSize[type]};
+            ret = load(addIndent(), r1, r2);
+            //registerAmount++;
+            (nextWord == PLUS)
+                ? ret += addIndent() + r2.regName +" = add nsw i32 " + "%" + std::to_string(registerAmount-1) + ", " + s2 + "\n"
+                : ret += addIndent() + "%" + std::to_string(registerAmount) +" = sub nsw i32 " + "%" + std::to_string(registerAmount-1) + ", " + s2 + "\n";
+            cout << ret << endl;
         } else
             ret += "+" + s2;
         return ret;
-    }
-    if (token[tokNumCounter + 1].tokNum == MIN) {
-        string s1 = mulDiv();
-        tokNumCounter += 2;
-        string s2 = mulDiv();
-        if (!isDigit(s1) && !isDigit(s2)) {
-            return std::to_string(std::stoi(s1) - std::stoi(s2));
-        }
-
-        if (langMode == LLIR) {
-            string type = regType[ret];
-            ret = addIndent() + "%" + std::to_string(registerAmount) + " = load " + type +", " + type + "* " + ret + ", align " + typeSize[type] + "\n";   
-            registerAmount++;
-            ret += addIndent() + "%" + std::to_string(registerAmount) +" = sub nsw i32 " + "%" + std::to_string(registerAmount-1) + ", " + s2 + "\n";
-        }
-        return s1 + "-" + s2;
     }
 
     return ret;
 }
 
 string Node::mulDiv() {
-    string ret = funCall();
+    string ret = funCall("");
 
     if (token[tokNumCounter + 1].tokNum == MUL) {
         tokNumCounter += 2;
-        string s2 = funCall();
+        string s2 = funCall("");
 
         if (langMode == LLIR) {
             string type = regType[ret];
@@ -129,7 +122,7 @@ string Node::mulDiv() {
     }
     if (token[tokNumCounter + 1].tokNum == DIV) {
         tokNumCounter += 2;
-        string s2 = funCall();
+        string s2 = funCall("");
         if (langMode == LLIR) {
             string type = regType[ret];
             ret = addIndent() + "%" + std::to_string(registerAmount) + " = load " + type +", " + type + "* " + ret + ", align " + typeSize[type] + "\n";   
@@ -141,10 +134,10 @@ string Node::mulDiv() {
         }
         return ret;
     }
-    return funCall();
+    return funCall("");
 }
 
-string Node::funCall() {
+string Node::funCall(string instanceName) {
     string ret;
 
     if (token[tokNumCounter + 1].tokNum == LBRACKET) {
@@ -154,14 +147,17 @@ string Node::funCall() {
 
         tokNumCounter++;
         string argment = funcCallArtgment();
-        if (classEnabled == True) {
-            (argment == "") ? argment = "&" + nowInstanceName : argment = "&" + nowInstanceName + ", " + argment;
+        if (instanceName != "") {
+            (argment == "") ? argment = "&" + instanceName : argment = "&" + instanceName + ", " + argment;
         } else {}
         expect(")");
         if (langMode == LLIR) {
             string r1 = std::to_string(registerAmount++);
+
             ret  = loads;
-            ret += "%" + r1 + " = call i32 @" + funcName + "(" + argment + ")";
+
+            ret += addIndent() + "%" + r1 + " = call i32 @" + funcName + "(" + argment + ")";
+
         }else {
             ret = funcName + "(" + argment + ")";
         }
@@ -170,16 +166,14 @@ string Node::funCall() {
                token[tokNumCounter + 3].tokNum == LBRACKET) {
         classEnabled = True;
         string ret = token[tokNumCounter++].tokChar;
-        nowInstanceName = ret;
         expect(".");
         tokNumCounter++;
         if (langMode == CPP) {
-            ret = classAndInstance[ret] + funCall();
+            ret = classAndInstance[ret] + funCall(ret);
         }
         else if (langMode == PYTHON) {
-            ret += "." + funCall();
+            ret += "." + funCall("");
         }
-        classEnabled = False;
         return ret;
     }
     return expr();
@@ -238,11 +232,11 @@ string Node::eval() {
 
     if (langMode == LLIR) {
         string opreg;
-        string regL = funCall();
+        string regL = funCall("");
         tokNumCounter++;
         string op = token[tokNumCounter].tokChar;
         tokNumCounter++;
-        string regR = funCall();
+        string regR = funCall("");
         tokNumCounter++;
 
         if (regL[0] == '%') {

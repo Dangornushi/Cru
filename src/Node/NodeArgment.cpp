@@ -1,4 +1,5 @@
 #include "Node.hpp"
+#include "../generator/Generate.hpp"
 
 
 string Node::funcCallArtgment() {
@@ -6,41 +7,50 @@ string Node::funcCallArtgment() {
 	string oneArgment;
     int nowWord;
 
+    if (token[tokNumCounter].tokNum == RBRACKET) {
+        return "";
+    }
+
 	while (1) {
-        nowWord = token[tokNumCounter].tokNum;
+        nowWord = token[tokNumCounter-1].tokNum;
 
         if (nowWord == RBRACKET || nowWord == RRIPPLE) {
+            tokNumCounter--;
             break;
-		}
-        if (nowWord == CANMA) {
-            oneArgment.push_back(',');
-            tokNumCounter++;
-        }
-        else {
+        } else {
             string arg = addSub();
 
             switch (langMode) {
                 case LLIR: {
                     string argmentReg;
-                    string type = regType[arg];
-                    string newReg = "%" + std::to_string(registerAmount++);
+                    string type   = regType[arg];
+                    string newReg = "%" + std::to_string(registerAmount);
 
-                    oneArgment += type + " noundef " + arg;
-                    loads += addIndent() + newReg  + " = loads " + type + ", " + type + "* " + arg + ", align " + typeSize[type] + "\n";
-                    
+                    reg r1 = {arg, type, typeSize[type]};
+                    reg r2 = {newReg, type, typeSize[type]};
+                    loads += load(addIndent(), r2, r1);
+                    oneArgment += type + " noundef " + r2.regName;
+
+                    llirReg.insert_or_assign(token[tokNumCounter].tokChar, registerAmount++);
+                    regType.insert_or_assign(r2.regName, r2.type);
                 } break;
                 default: {
-                    if (inArray == True)
+                    if (token[tokNumCounter - 1].tokChar == "{")
                         arg = "{" + arg + "}";
                     else
                         ;
 
                     for (int i = 0; i < arg.length(); i++)
-                        oneArgment.push_back(arg[i]); 
+                        oneArgment.push_back(arg[i]);
+                    tokNumCounter++;
                 } break;
             }
-            if (nowWord == RBRACKET)
-                break;
+            cout << ">> " << token[tokNumCounter].tokChar << endl;
+
+            if (token[tokNumCounter].tokNum == CANMA) {
+                oneArgment.push_back(',');
+                //tokNumCounter++;
+            }
             tokNumCounter++;
         }
     }

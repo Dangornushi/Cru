@@ -1,10 +1,12 @@
 #include "Node.hpp"
+#include "../generator/Generate.hpp"
 
 #include <fstream>
 
 string Node::sent() {
     string ret;
-    ret = funCall();
+    ret = funCall("");
+
     switch (token[tokNumCounter].tokNum) {
         case LET: {
             int isMut;
@@ -43,7 +45,7 @@ string Node::sent() {
                 tokNumCounter++;
             }
 
-            if (valueType == "int") {
+            if (valueType == "int" && langMode == LLIR) {
                 valueType = "i32";
             }
             
@@ -113,46 +115,43 @@ string Node::sent() {
                 else if (langMode == CPP) {
                     if (valueType == "string") {
                        ret = addIndent() + "__Cru_string " + valueName;
-                        if (data != "") {
+                        if (data != "")
                             ret += " = " + data ;
-                        } else
-                            ;
+                        else ;
 
                     } else if (valueType == "vec") {
                         ret += "__Cru_Vec_" + vecType + " " + valueName;
                         if (vecType == "string") {
-                            if (data != "") {
+                            if (data != "")
                                 ret += " = {"+ data +"}";
-                            }
+                            else ;
                         }
                     } else {
                         ret = addIndent() + valueType + " " + valueName;
-                        if (data != "") {
+                        if (data != "")
                             ret += " = " + data;
-                        } else {
+                        else
                             classAndInstance[valueName] = nowClassName;
-                        }
                     }
 
                     ret += ";\n";
-
-                    if (isInit == True) {
-                        selfLet += ret;
-                    }
                 }
                 else if (langMode == LLIR) {
                     string regNum = std::to_string(registerAmount);
                     string size = typeSize[valueType];
-                    if (LLIRnowVar == "") {
-                    }
-                    else {
-                        ret = addIndent() + data + "\n"; 
+                    if (LLIRnowVar == "")
                         LLIRnowVar = data;
-                    }
-                    ret += addIndent() + "%" + regNum + " = alloca " + valueType + ", align " + size + "\n" ; 
-                    ret += addIndent() + "store " + valueType + " " + LLIRnowVar+ ", " + valueType + "* %" + regNum + ", align " + size + "\n";
+                    else 
+                        ret = addIndent() + data + "\n"; 
+
+                    reg r1 = {"%"+regNum, valueType, size};
+                    string value = LLIRnowVar;
+
+                    ret += move(addIndent(), r1, value);
+
                     llirReg.insert_or_assign(valueName, registerAmount++);
-                    regType.insert_or_assign("%" + regNum, valueType);
+                    regType.insert_or_assign(r1.regName, r1.type);
+                    LLIRnowVar = "";
                 }
                 expect(";");
                 tokNumCounter++;
@@ -276,7 +275,7 @@ string Node::sent() {
 
             expect("put");
             tokNumCounter++;
-            string data = funCall();
+            string data = funCall("");
             tokNumCounter++;
 
             if (langMode == PYTHON) {
@@ -404,6 +403,7 @@ string Node::sent() {
             return addIndent() + ";";
         } break;
         default: {
+
             if (token[tokNumCounter].tokChar == "}" || token[tokNumCounter + 1].tokChar == "")
                 return "";
             else if (token[tokNumCounter+1].tokNum == PLUS) { 
@@ -449,14 +449,12 @@ string Node::sent() {
                 tokNumCounter++;
                 if (token[tokNumCounter].tokChar == "{") {
                     tokNumCounter++;
-                    inArray = True;
                     ret = "char *__tmp[] = {" +  funcCallArtgment() + "};\n" + ret + " = _Vec(__tmp)";
-                    inArray = False;
                     expect("}");
                 }
                 else {
                     if (langMode == LLIR) {
-                        string data = funCall();
+                        string data = funCall("");
                         string size = typeSize[regType[ret]];
                         if (regType.find(data) != regType.end()) {
                             string type = regType[data];
@@ -485,7 +483,7 @@ string Node::sent() {
                         ret += sent();
                         return ret;
                     } else {
-                        ret += " = " + funCall();
+                        ret += " = " + addSub();
                     }
                 }
 

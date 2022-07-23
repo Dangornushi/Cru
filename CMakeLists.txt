@@ -1,4 +1,4 @@
-set(INCLUDE_DIRS  src/Lexer/ src/Node/ src/ generator)
+set(INCLUDE_DIRS  src/Lexer/ src/Node/ src/generator)
 cmake_minimum_required(VERSION 3.23.1)
 project(cru CXX)
 include_directories(${INCLUDE_DIRS})

@@ -49,6 +49,7 @@ string Node::functionDefinition() {
         if (Type == "int" && langMode == RUST) {
             Type = "usize";
         }
+
         else if (Type == "int" && langMode == LLIR) {
             Type = "i32";
         }
@@ -132,7 +133,6 @@ string Node::functionDefinition() {
 
         tokNumCounter++;
 
-        classEnabled = True;
         nowClassName = Name;
 
         (langMode == PYTHON) ? indent++ : 1;
@@ -145,7 +145,6 @@ string Node::functionDefinition() {
             expect("{");
             tokNumCounter++;
 
-            isInit   = True;
             selfData = sent();
 
             if (langMode == PYTHON) {
@@ -157,8 +156,6 @@ string Node::functionDefinition() {
 
             tokNumCounter++;
         }
-
-        classEnabled = False;
 
         Data += functionDefinition();
 
@@ -241,9 +238,7 @@ string Node::functionDefinition() {
                     functionDefinition() + "\n"
             : ret = Type + " " + nowClassName + Name + " (" + nowClassName + " *self" + argment +
                     ") {\n" + Data + "\n}" + functionDefinition();
-        if (classEnabled == True) {
-            argment += argment + "";
-        }
+        argment += argment + "";
         return ret;
     } else if (token[tokNumCounter].tokNum == ENUM) {
         tokNumCounter++;
@@ -263,13 +258,14 @@ string Node::functionDefinition() {
     } else if (token[tokNumCounter].tokNum == ATSIGN) {
         expect("@");
         tokNumCounter++;
-        ret = funCall(); 
+        ret = funCall(""); 
         tokNumCounter++;
         expect(";");
         tokNumCounter++;
         ret = "#[" + ret + "]\n" + functionDefinition();
         return ret;
     }
+    else ;
     return "";
 }
 
