@@ -132,6 +132,25 @@ vector<tokens> Lexer::lex(string fileData) {
             i += LEN_ENUM - 1;
             continue;
         }
+        if (fileData.substr(i, 1) == "\"") {
+            string data;
+            
+            i++;
+
+            token.push_back({DQ, "\""});
+
+            while (1) {
+                char tmp = fileData[i];
+                if (tmp == '"')
+                    break;
+                data.append(1, tmp);
+                i++;
+            }
+            token.push_back({WORD, data});
+            token.push_back({DQ, "\""});
+
+            continue;
+        }
         /*===--- op(MAP : OP) ---=== */
         if (OP.find(nowChar) != OP.end()) {
             token.push_back({OP.find(nowChar)->second, addStr.append(1, nowChar)});

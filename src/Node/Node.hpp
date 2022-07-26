@@ -18,6 +18,7 @@
 #define C_DEF 1
 #define C_CALL 2
 
+#define i8 1
 #define I32 4
 #define I64 8
 
@@ -26,23 +27,35 @@ struct defArg {
     string name;
 };
 
-struct Type {
-    int len;
-    int isMut;
-    string type;
+typedef struct {
     string name;
-};
+    string regName;
+    string type;
+    string len;
+} Type;
+
+typedef struct {
+    map<string, Type> Reg;
+    map<string, string> llirReg;
+    int registerAmount;
+} Register;
+
+typedef struct {
+    vector<Type> argVars;
+    string argMove;
+    string returnFunctionArgument;
+} ReturnArgumentAndMove;
 
 struct Node {
 
     Node(int langMode);
 
     vector<tokens> token;
-    vector<Type> valMemory;
+    Register Regs;
 
     vector<string> menberFunctions;
     map<string, string> classAndInstance;
-    map<string, int> llirReg;
+
     map<string, string> typeSize;
     map<string, string> llirType;
     map<string, string> regType;
@@ -71,7 +84,7 @@ struct Node {
     string eval();
     string loop();
     string comparison(int i, string ret);
-    string funcDefArtgment();
+    ReturnArgumentAndMove funcDefArgument();
     string funcCallArtgment();
 
     string functionDefinition();

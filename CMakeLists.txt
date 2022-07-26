@@ -5,7 +5,7 @@ include_directories(${INCLUDE_DIRS})
 add_executable(cru 
 	src/main.cpp
 	src/Lexer/Lexer.cpp
-	src/Node/NodeArgment.cpp
+	src/Node/Nodeargment.cpp
 	src/Node/NodeSent.cpp
 	src/Node/NodeFunctionDefinition.cpp
 	src/Node/Node.cpp

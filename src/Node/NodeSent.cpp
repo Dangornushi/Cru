@@ -16,15 +16,19 @@ string Node::sent() {
             string data;
             string ret;
             string vecType;
+            string regSName;
 
             expect("let");
+
             tokNumCounter++;
+
             if (token[tokNumCounter].tokNum == MUT) {
                 isMut = True;
                 tokNumCounter++;
             } else
                 isMut = False;
 
+            regSName = token[tokNumCounter].tokChar;
             valueName = word();
 
             tokNumCounter++;
@@ -45,10 +49,9 @@ string Node::sent() {
                 tokNumCounter++;
             }
 
-            if (valueType == "int" && langMode == LLIR) {
+            if (valueType == "int" && langMode == LLIR)
                 valueType = "i32";
-            }
-            
+
             llirType.insert_or_assign(valueName, valueType);
 
             if (token[tokNumCounter].tokChar == "<-") {
@@ -62,18 +65,23 @@ string Node::sent() {
                     data = "{" + funcCallArtgment() + "}";
 
                     expect("}");
-                    tokNumCounter++;
                 }
 
-                else {
-                    data = addSub();
+                else if (token[tokNumCounter].tokChar == "\"") {
                     tokNumCounter++;
-                }
+                    data = "\"" + token[tokNumCounter].tokChar  + "\"";
+                    tokNumCounter++;
+                    expect("\"");
+                } 
+
+                else
+                    data = addSub();
+                tokNumCounter++;
             } else {
                 string regNum = std::to_string(registerAmount);
                 string size   = typeSize[valueType];
                 ret = addIndent() + "%" + regNum + " = alloca " + valueType + ", align " + size + "\n";
-                llirReg.insert_or_assign(valueName, registerAmount++);
+                Regs.llirReg.insert_or_assign("%" + regNum, valueName);
                 regType.insert_or_assign("%" + regNum, valueType);
                 expect(";");
                 tokNumCounter++;
@@ -84,17 +92,6 @@ string Node::sent() {
 
             int hasType;
             hasType = False;
-
-            for (vector<Type>::const_iterator i = valMemory.begin(); i != valMemory.end(); i++) {
-                if (i->name == valueName) {
-                    // もうすでに変数が存在する
-                    hasType = True;
-                    break;
-                }
-                // 初めて宣言される
-            }
-
-            valMemory.push_back({0, isMut, valueType, valueName});
 
             if (hasType == True && isMut == True) {
                 cout << "Warning: value '" << valueName << "' has the @Mut option. " << endl;
@@ -114,7 +111,7 @@ string Node::sent() {
                 }
                 else if (langMode == CPP) {
                     if (valueType == "string") {
-                       ret = addIndent() + "__Cru_string " + valueName;
+                        ret = addIndent() + "__Cru_string " + valueName;
                         if (data != "")
                             ret += " = " + data ;
                         else ;
@@ -147,10 +144,14 @@ string Node::sent() {
                     reg r1 = {"%"+regNum, valueType, size};
                     string value = LLIRnowVar;
 
-                    ret += move(addIndent(), r1, value);
+                    Regs.Reg[regSName] = {regSName, "%"+regNum, valueType, typeSize[valueType]};
 
-                    llirReg.insert_or_assign(valueName, registerAmount++);
-                    regType.insert_or_assign(r1.regName, r1.type);
+                    ret += move(addIndent(), Regs.Reg[regSName], value);
+
+                    registerAmount++;
+
+                    Regs.llirReg.insert_or_assign("%"+regNum, regSName);
+                    //regType.insert_or_assign(r1.regName, r1.type);
                     LLIRnowVar = "";
                 }
                 expect(";");
@@ -285,9 +286,10 @@ string Node::sent() {
                 ret = addIndent() + "__CRU_Strput(" + data + ", sizeof(" + data + "));\n";
             }
             else if (langMode == LLIR) {
+                //string loadR1 = data;
                 string loadR1 = "%" + std::to_string(registerAmount++);
                 string loadR2 = "%" + std::to_string(registerAmount++);
-                string loadR3 = "%" + std::to_string(registerAmount++);
+                //string loadR3 = "%" + std::to_string(registerAmount++);
                 string printfR;
                 string size = typeSize[regType[data]];
                 
@@ -297,15 +299,18 @@ string Node::sent() {
                 else 
                     strDefine += "4\n";
 
-                if (regType[data] != "") {
-                    ret =  addIndent() + loadR1 + " = load " + regType[data] + ", " + regType[data] + "* " + data + ", align " + typeSize[regType[data]] + "\n";
+                if (Regs.Reg.find(data) != Regs.Reg.end()) {
                 }
                 else {
+                    /*
                     ret += addIndent() + loadR1 + " = alloca i32, align 4\n" ; 
                     ret += addIndent() + "store i32 " + data + ", i32* " + loadR1 + ", align 4\n";
                     ret += addIndent() + loadR2 + " = load i32, i32* " + loadR1 + ", align 4\n" ; 
+                     */
                 }
-                ret += addIndent() + loadR3 + " = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds ([3 x i8], [3 x i8]* @.str." + std::to_string(strAmount++) +", i64 0, i64 0), i32 noundef " + loadR2+ ")\n"; 
+                string dataN = Regs.llirReg[data];
+                ret =  addIndent() + loadR1 + " = load " + Regs.Reg[dataN].type + ", " + Regs.Reg[dataN].type + "* " + data + ", align " + Regs.Reg[dataN].len + "\n";
+                ret += addIndent() + loadR2 + " = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds ([3 x i8], [3 x i8]* @.str." + std::to_string(strAmount++) +", i64 0, i64 0), i32 noundef " + loadR1 + ")\n"; 
                 if (putDefExists == False) {
                     functionDefine += "declare i32 @printf(i8* noundef, ...) #" + std::to_string(funcDefQuantity++);
                 }
@@ -456,27 +461,25 @@ string Node::sent() {
                     if (langMode == LLIR) {
                         string data = funCall("");
                         string size = typeSize[regType[ret]];
-                        if (regType.find(data) != regType.end()) {
-                            string type = regType[data];
-                            string size = typeSize[regType[data]];
+                        if (Regs.llirReg.find(data) != Regs.llirReg.end()) {
+
+                            string type = Regs.Reg[Regs.llirReg[data]].type;
+                            string size = Regs.Reg[Regs.llirReg[data]].len;
                             string data = addSub();
                             string tmpReg = "%" + std::to_string(registerAmount);
                             string mainReg = ret;
 
-//                            registerAmount++;
-
                             string tmp = "%" + std::to_string(registerAmount);
 
                             ret = data;
-//                            ret += addIndent() + tmp + " = load " + type + ", " + type + "* " + tmpReg + ", align " + size + "\n";
                             ret += addIndent() + "store " + type + " " + tmp + ", " + type + "* " + mainReg + ", align " + size + "\n";
 
-                            llirReg.insert_or_assign(tmp, registerAmount);
-                            regType.insert_or_assign("%" + std::to_string(registerAmount++), "i32");
+                            Regs.llirReg.insert_or_assign(tmp, tmp);
+                            regType.insert_or_assign(tmp, "i32");
+                            registerAmount++;
 
-                        } else {
+                        } else
                             ret = addIndent() + "store " + regType[ret] + " " + data + ", " + regType[ret] + "* " + ret + ", align " + size + "\n";
-                        }
                         tokNumCounter++;
                         expect(";");
                         tokNumCounter++;

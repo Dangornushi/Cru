@@ -1,9 +1,10 @@
 #include "Node.hpp"
+#include "../generator/Generate.hpp"
 
 /* ===--- class, fn, pub fn ---===*/
 
 string Node::functionDefinition() {
-    string argment = "";
+    ReturnArgumentAndMove argment;
     string Name;
     string Type;
     string Data;
@@ -20,11 +21,13 @@ string Node::functionDefinition() {
 
         tokNumCounter++;
 
+        registerAmount = 0;
+
         if (token[tokNumCounter].tokNum == LBRACKET) {
             tokNumCounter++; // (
             if (token[tokNumCounter].tokNum != RBRACKET)  {
-                registerAmount = 0;
-                argment = funcDefArtgment();
+                argment = funcDefArgument();
+                argment.argMove = argMove("    ", argment, &registerAmount, &Regs);
             }
             expect(")");
             tokNumCounter++; // )
@@ -38,7 +41,7 @@ string Node::functionDefinition() {
 
         string Fsent;
 
-        Fsent = "fn " + Name + "(" + argment + ") : ";
+        Fsent = "fn " + Name + "(" + argment.returnFunctionArgument + ") : ";
 
         if (Type == "auto") {
             for (int i = 0; i < Fsent.length(); i++)
@@ -64,8 +67,6 @@ string Node::functionDefinition() {
 
         indent++;
 
-        string FDQ = std::to_string(funcDefQuantity++);
-
         Data = sent();
 
         registerAmount = nowRegNum;
@@ -76,15 +77,13 @@ string Node::functionDefinition() {
 
         tokNumCounter++;
 
-        valMemory.push_back({0, False, Type, Name});
-
         switch (langMode) {
             case PYTHON:
-                ret += "def " + Name + " (" + argment + ") :\n" + Data + functionDefinition() + "\n";
+                ret += "def " + Name + " (" + argment.returnFunctionArgument + ") :\n" + Data + functionDefinition() + "\n";
                 break;
 
             case CPP:
-                ret += Type + " " + Name + " (" + argment + ") {\n" + Data + "\n}" +
+                ret += Type + " " + Name + " (" + argment.returnFunctionArgument + ") {\n" + Data + "\n}" +
                        functionDefinition();
                 break;
 
@@ -93,14 +92,16 @@ string Node::functionDefinition() {
                 if (Name == "main")
                     ret += " (boot_info: &'static BootInfo) -> ! {" + Data + "\n\tloop{}\n}\n\n";
                 else
-                    ret += "(" + argment + ") ->" + Type + " {\n" + Data + "\n}\n\n";
+                    ret += "(" + argment.returnFunctionArgument + ") ->" + Type + " {\n" + Data + "\n}\n\n";
                 ret += functionDefinition();
             } break;
 
             case LLIR: {
+                string FDQ = std::to_string(funcDefQuantity++);
+
                 indent++;
                 ret +=
-                    "define " + Type + " @" + Name + "(" + argment + ") #" + FDQ +" {\nentry:\n" + Data + "}\n\n";
+                    "define " + Type + " @" + Name + "(" + argment.returnFunctionArgument + ") #" + FDQ +" {\nentry:\n" + argment.argMove + Data + "}\n\n";
                 ret += functionDefinition();
                 indent--;
             } break;
@@ -166,10 +167,8 @@ string Node::functionDefinition() {
 
         tokNumCounter++;
 
-        valMemory.push_back({0, False, Type, Name});
-
-        if (langMode == PYTHON) {
-            ret = "class " + Name + argment + ":\n\n" + Data;
+                if (langMode == PYTHON) {
+            ret = "class " + Name + argment.returnFunctionArgument + ":\n\n" + Data;
         } else if (langMode == CPP) {
             ret = "typedef struct {\n" + selfData + "\n} " + Name + ";\n" + Data + "\n\n";
         } else if (langMode == RUST) {
@@ -192,7 +191,7 @@ string Node::functionDefinition() {
         if (token[tokNumCounter].tokNum == LBRACKET) {
             tokNumCounter++; // (
             if (token[tokNumCounter].tokNum != RBRACKET) {
-                argment = ", " + funcDefArtgment();
+                argment.returnFunctionArgument = ", " + funcDefArgument().returnFunctionArgument;
             }
             tokNumCounter++; // )
         }
@@ -205,7 +204,7 @@ string Node::functionDefinition() {
 
         string Fsent;
 
-        Fsent = "pub fn " + Name + "(" + argment + ") : ";
+        Fsent = "pub fn " + Name + "(" + argment.returnFunctionArgument + ") : ";
 
         if (Type == "auto") {
             cout << Fsent + Type << endl;
@@ -231,14 +230,12 @@ string Node::functionDefinition() {
 
         tokNumCounter++;
 
-        valMemory.push_back({0, False, Type, Name});
-
         (langMode == PYTHON)
-            ? ret = addIndent() + "def " + Name + " (self" + argment + "):\n" + Data + "\n" +
+            ? ret = addIndent() + "def " + Name + " (self" + argment.returnFunctionArgument + "):\n" + Data + "\n" +
                     functionDefinition() + "\n"
-            : ret = Type + " " + nowClassName + Name + " (" + nowClassName + " *self" + argment +
+            : ret = Type + " " + nowClassName + Name + " (" + nowClassName + " *self" + argment.returnFunctionArgument +
                     ") {\n" + Data + "\n}" + functionDefinition();
-        argment += argment + "";
+        //argment.returnFunctionArgument += argment.returnFunctionArgument + "";
         return ret;
     } else if (token[tokNumCounter].tokNum == ENUM) {
         tokNumCounter++;

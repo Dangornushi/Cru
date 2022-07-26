@@ -3,7 +3,6 @@
 
 
 string Node::funcCallArtgment() {
-	string returnFunctionArgment = "";
 	string oneArgment;
     int nowWord;
 
@@ -12,29 +11,41 @@ string Node::funcCallArtgment() {
     }
 
 	while (1) {
-        nowWord = token[tokNumCounter-1].tokNum;
+        nowWord = token[tokNumCounter].tokNum;
 
-        if (nowWord == RBRACKET || nowWord == RRIPPLE) {
-            tokNumCounter--;
+
+        if (nowWord == RBRACKET || nowWord == RRIPPLE)
+            //tokNumCounter--;
             break;
+        else if (token[tokNumCounter].tokNum == CANMA) {
+            oneArgment.push_back(',');
+            tokNumCounter++;
+
         } else {
+            string var = token[tokNumCounter].tokChar;
             string arg = addSub();
 
             switch (langMode) {
                 case LLIR: {
                     string argmentReg;
-                    string type   = regType[arg];
+                    string type   = Regs.Reg[Regs.llirReg[arg]].type;
                     string newReg = "%" + std::to_string(registerAmount);
 
-                    reg r1 = {arg, type, typeSize[type]};
+                    Type r1 = {"", arg, type, typeSize[type]};
                     reg r2 = {newReg, type, typeSize[type]};
-                    loads += load(addIndent(), r2, r1);
+                    loads += load(addIndent(), r1, newReg);
+
                     oneArgment += type + " noundef " + r2.regName;
 
-                    llirReg.insert_or_assign(token[tokNumCounter].tokChar, registerAmount++);
-                    regType.insert_or_assign(r2.regName, r2.type);
-                } break;
+                    Regs.llirReg.insert_or_assign(r2.regName, token[tokNumCounter].tokChar);
+                    //regType.insert_or_assign(r2.regName, r2.type);
+                    //tokNumCounter++;
+                    registerAmount++;
+
+                    break;
+                }
                 default: {
+
                     if (token[tokNumCounter - 1].tokChar == "{")
                         arg = "{" + arg + "}";
                     else
@@ -42,15 +53,10 @@ string Node::funcCallArtgment() {
 
                     for (int i = 0; i < arg.length(); i++)
                         oneArgment.push_back(arg[i]);
-                    tokNumCounter++;
-                } break;
+                    break;  
+                }
             }
-            cout << ">> " << token[tokNumCounter].tokChar << endl;
 
-            if (token[tokNumCounter].tokNum == CANMA) {
-                oneArgment.push_back(',');
-                //tokNumCounter++;
-            }
             tokNumCounter++;
         }
     }
@@ -58,9 +64,10 @@ string Node::funcCallArtgment() {
 	return oneArgment;
 }
 
-string Node::funcDefArtgment() {
-	string returnFunctionArgment = "";
+ReturnArgumentAndMove Node::funcDefArgument() {
 	vector<string> oneArgment;
+    ReturnArgumentAndMove argument;
+	//string returnFunctionArgment = "";
     string valueName;
     string valueType;
 
@@ -70,31 +77,34 @@ string Node::funcDefArtgment() {
         if (token[tokNumCounter - 1].tokNum == CANMA || token[tokNumCounter].tokNum == RBRACKET) {
             switch (langMode) {
                 case CPP:
-                    returnFunctionArgment += oneArgment.at(2) + " " + oneArgment.at(0);
+                    argument.returnFunctionArgument += oneArgment.at(2) + " " + oneArgment.at(0);
                     break;
                 case PYTHON:
-                    returnFunctionArgment += oneArgment.at(0);
+                    argument.returnFunctionArgument += oneArgment.at(0);
                     break;
                 case LLIR: {
-                    string r1;
                     valueName = oneArgment[0];
                     if (oneArgment[2] == "int")
                         valueType = "i32";
-                    r1 = "%" + std::to_string(registerAmount);
-                    llirType.insert_or_assign(valueName, valueType);
-                    llirReg.insert_or_assign(valueName, registerAmount);
-                    regType.insert_or_assign(r1, valueType);
-                    returnFunctionArgment += valueType + " noundef " + r1;
+                    reg r1 = {"%" + std::to_string(registerAmount), valueType, typeSize[valueType]};
+llirType.insert_or_assign(valueName, r1.type);
+                    Regs.llirReg.insert_or_assign("%" + std::to_string(registerAmount), valueName);
+                    regType.insert_or_assign(r1.regName, r1.type);
+
+                    argument.returnFunctionArgument += valueType + " noundef " + r1.regName;
+                    Regs.Reg[valueName] = {valueName, "%"+std::to_string(registerAmount), valueType, typeSize[valueType]};
                     registerAmount++;
+                    argument.argVars.push_back(Regs.Reg[valueName]);
+
                 } break;
                 default:
                     break;
             }
-            returnFunctionArgment += ", ";
+            argument.returnFunctionArgument += ", ";
 			oneArgment = {};
         }
         if (token[tokNumCounter].tokChar[0] == ')') {
-			returnFunctionArgment.erase(returnFunctionArgment.end()-2, returnFunctionArgment.end());
+			argument.returnFunctionArgument.erase(argument.returnFunctionArgument.end()-2, argument.returnFunctionArgument.end());
             break;
 		}
         else {
@@ -103,5 +113,5 @@ string Node::funcDefArtgment() {
         }
     }
 
-	return returnFunctionArgment;
+	return argument;
 }
