@@ -4,6 +4,7 @@
 #include <fstream>
 #include <memory>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <map>
 
 string parseQuort(const string s1) {
@@ -36,10 +37,11 @@ string Node::parse(vector<tokens> geToken) {
     string write;
     token = geToken;
     if (token[tokNumCounter].tokNum == IMPORT) {
+        string pathVec = execDir();
 
         tokNumCounter++;
         string filedata;
-        string filename = parseQuort(word());
+        string filename = pathVec + parseQuort(word());
         string ret;
 
         std::ifstream reading_file;

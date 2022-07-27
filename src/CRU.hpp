@@ -20,6 +20,8 @@ using std::map;
 
 
 int isDigit(string s1);
+string execDir();
+vector<string> pathSplit(string p);
 
 extern int langMode;
 extern int debugMode;

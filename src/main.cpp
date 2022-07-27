@@ -4,6 +4,10 @@
 #include <dirent.h>
 #include <fstream>
 #include <sys/stat.h>
+#include <sys/sysctl.h>
+#include <errno.h>
+#include <libproc.h>
+#include <unistd.h>
 
 /*
  * Copyright (c) 2022 Dangomsuhi
@@ -15,6 +19,40 @@ Main::Main(int n, char *arg[]) {
     version  = "cru ver.0.0.1";
     cmdArg(1, arg, n);
     debugMode = 1;
+}
+
+string execDir() {
+    vector<string> ret;
+    string dir;
+    int r;
+    pid_t pid;
+    char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
+
+    pid = getpid();
+    r   = proc_pidpath(pid, pathbuf, sizeof(pathbuf));
+    if (r <= 0) {
+        fprintf(stderr, "PID %d: proc_pidpath ();\n", pid);
+        fprintf(stderr, "    %s\n", strerror(errno));
+    } else;
+    ret = pathSplit(string {pathbuf});
+    for (auto tmp : ret)
+        dir += tmp + "/";
+    return dir;
+}
+
+vector<string> pathSplit(string p) {
+    vector<string> ret;
+    string data;
+
+    for (auto tmp : p) {
+        if (tmp == '/') {
+            ret.insert(ret.end(), data);
+            data = "";
+        }
+        else
+            data += tmp;
+    }
+    return ret;
 }
 
 string splitStr(string s1) {
