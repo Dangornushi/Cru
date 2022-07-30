@@ -181,16 +181,15 @@ string Node::functionDefinition() {
                 ret = "struct " + Name + overRide;
                 break;
 
-            default: {
+            default:
                 break;
-            }
         }
 
         return ret + functionDefinition();
     } else if (token[tokNumCounter].tokNum == PUB) {
 
         expect("pub");
-        tokNumCounter++; // fn
+        tokNumCounter++; // pub
 
         expect("fn");
         tokNumCounter++; // fn

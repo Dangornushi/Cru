@@ -84,6 +84,12 @@ vector<tokens> Lexer::lex(string fileData) {
             i += 2;
             continue;
         }
+        /*===--- == ---===*/
+        if (fileData.substr(i, 2) == "==") {
+            token.push_back({EQEQ, "=="});
+            i += 2;
+            continue;
+        }
         /*===--- Vec ---===*/
         if (fileData.substr(i, LEN_VEC) == "Vec") {
             token.push_back({VEC, "Vec"});

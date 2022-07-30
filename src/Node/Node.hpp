@@ -60,6 +60,7 @@ struct Node {
     map<string, string> typeSize;
     map<string, string> llirType;
     map<string, string> regType;
+    map<int, string> opToIR;
 
     int tokNumCounter;
     int indent;

@@ -29,6 +29,11 @@ Node::Node(int langMode) {
     this->strAmount = 0;
     this->funcDefQuantity = 0;
     this->putDefExists = False;
+    this->opToIR = {
+        {EQEQ, "eq"},
+        {BIG, "slt"},
+        {MINI, "sgt"},
+    };
 }
 
 // loop to the end of file.
@@ -169,6 +174,7 @@ string Node::funCall(string instanceName) {
         expect(")");
 
         if (langMode == LLIR) {
+            registerAmount++;
             string r1 = std::to_string(registerAmount++);
 
             ret  = loads;
@@ -247,24 +253,26 @@ string Node::eval() {
         string opreg;
         string regL = funCall("");
         tokNumCounter++;
-        string op = token[tokNumCounter].tokChar;
+        int op = token[tokNumCounter].tokNum;
         tokNumCounter++;
         string regR = funCall("");
         tokNumCounter++;
 
+        ++registerAmount;
+
         if (regL[0] == '%') {
             // regL is register.
-            ;
-            type = Regs.Reg[regL].len;
+            type = Regs.Reg[Regs.llirReg[regL]].len;
 
-            ret += addIndent() + "%" + std::to_string(registerAmount) + " = load " + Regs.Reg[regL].type + ", " +
-                    Regs.Reg[regL].type + "* " + regL + ", align " + type + "\n";
+            ret += addIndent() + "%" + std::to_string(registerAmount) + " = load " + Regs.Reg[Regs.llirReg[regL]].type + ", " +
+                    Regs.Reg[Regs.llirReg[regL]].type + "* " + regL + ", align " + type + "\n";
 
-            Regs.Reg[regL].name = "%" + std::to_string(registerAmount++);
+            Regs.Reg[regL].name = "%" + std::to_string(registerAmount);
             regL = "%" + std::to_string(registerAmount++);
         } else
             // regL is not register.
             ;
+
         if (regR[0] == '%') {
             // regR is register.
             type = typeSize[regType[regR]];
@@ -279,7 +287,7 @@ string Node::eval() {
 
         r1 = "%" + std::to_string(registerAmount++);
 
-        (op == ">") ? opreg = "sgt" : opreg = "slt";
+        opreg = opToIR[op];
 
         ret += addIndent() + r1 + " = icmp " + opreg + " i32 " + regL + ", " + regR + "\n";
     }

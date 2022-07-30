@@ -63,6 +63,7 @@ ReturnArgumentAndMove Node::funcDefArgument() {
 	vector<string> oneArgment;
     string valueName;
     string valueType;
+    string OFS;
     ReturnArgumentAndMove argument;
 
     registerAmount = 0;
@@ -78,15 +79,17 @@ ReturnArgumentAndMove Node::funcDefArgument() {
                     break;
                 case LLIR: {
                     valueName = oneArgment[0];
-                    if (oneArgment[2] == "int")
+                    if (oneArgment[2] == "int") {
                         valueType = "i32";
-
+                        OFS = "\%d";
+                    }
                     llirType[valueName] = valueType;
 
                     Regs.llirReg["%" + std::to_string(registerAmount)] = valueName;
 
                     argument.returnFunctionArgument += valueType + " noundef %" + std::to_string(registerAmount);
-                    Regs.Reg[valueName] = {valueName, "%"+std::to_string(registerAmount), valueType, typeSize[valueType]};
+
+                    Regs.Reg[valueName] = {valueName, "%"+std::to_string(registerAmount), valueType, typeSize[valueType], OFS};
                     registerAmount++;
                     argument.argVars.push_back(Regs.Reg[valueName]);
                     break;

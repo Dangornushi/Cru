@@ -183,11 +183,11 @@ string Node::sent() {
                     else
                         ret = addIndent() + data + "\n";
 
+                    value = LLIRnowVar;
+
                     if (valueType == "i8") {
                         registerName =
                             "@.__const." + nowFuncName + "." + regSName;
-
-                        value = LLIRnowVar;
 
                         for (index = 1; index < value.size() - 1; index++)
                             tmp += value[index];
@@ -214,10 +214,10 @@ string Node::sent() {
                         registerName       = "%" + regNum;
                         Regs.Reg[regSName] = {regSName, registerName, valueType,
                                               typeSize[valueType]};
-
                         ret += move(addIndent(), Regs.Reg[regSName], value);
                     }
                     registerAmount++;
+
 
                     Regs.llirReg[registerName] = regSName;
                     LLIRnowVar                 = "";

@@ -52,6 +52,7 @@ enum RESERV {
     MAC_STRING,
     CLASS,
     ENUM,
+    EQEQ,
 
     /* TYPE AND VARs */
     WORD,
