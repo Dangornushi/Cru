@@ -32,6 +32,7 @@ typedef struct {
     string regName;
     string type;
     string len;
+    string outputFormatSpecifier;
 } Type;
 
 typedef struct {
@@ -72,6 +73,7 @@ struct Node {
 
     void expect(string str);
     string nowClassName;
+    string nowFuncName;
     string nowInstanceName;
     string nowType;
     string LLIRnowVar;

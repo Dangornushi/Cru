@@ -18,6 +18,7 @@ string Node::functionDefinition() {
         tokNumCounter++; // fn
 
         Name = word();
+        nowFuncName = Name;
 
         tokNumCounter++;
 
@@ -167,12 +168,22 @@ string Node::functionDefinition() {
 
         tokNumCounter++;
 
-                if (langMode == PYTHON) {
-            ret = "class " + Name + argment.returnFunctionArgument + ":\n\n" + Data;
-        } else if (langMode == CPP) {
-            ret = "typedef struct {\n" + selfData + "\n} " + Name + ";\n" + Data + "\n\n";
-        } else if (langMode == RUST) {
-            ret = "struct " + Name + overRide;
+        switch (langMode) {
+            case PYTHON:
+                ret = "class " + Name + argment.returnFunctionArgument + ":\n\n" + Data;
+                break;
+
+            case CPP:
+                ret = "typedef struct {\n" + selfData + "\n} " + Name + ";\n" + Data + "\n\n";
+                break;
+
+            case RUST:
+                ret = "struct " + Name + overRide;
+                break;
+
+            default: {
+                break;
+            }
         }
 
         return ret + functionDefinition();

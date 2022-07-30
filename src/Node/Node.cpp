@@ -179,8 +179,7 @@ string Node::funCall(string instanceName) {
             ret = funcName + "(" + argment + ")";
         }
         return ret;
-    } else if (token[tokNumCounter + 1].tokNum == PERIOD &&
-               token[tokNumCounter + 3].tokNum == LBRACKET) {
+    } else if (token[tokNumCounter + 1].tokNum == PERIOD && token[tokNumCounter + 3].tokNum == LBRACKET) {
         classEnabled = True;
         string ret = token[tokNumCounter++].tokChar;
         expect(".");
@@ -209,14 +208,10 @@ string Node::expr() {
 string Node::word() {
     string ret;
     if (token[tokNumCounter].tokChar == "\"") {
-        int index = tokNumCounter;
+        ret = "\"" + token[tokNumCounter+1].tokChar + "\"";
 
-        for (; token[index + 1].tokChar != "\""; index++)
-            ret += token[index + 1].tokChar;
-        ret = "\"" + ret + "\"";
-        index++;
-
-        tokNumCounter = index;
+        tokNumCounter +=2;
+        return ret;
     } else if (token[tokNumCounter].tokNum == SELF) {
         expect("self");
         tokNumCounter++;
@@ -224,15 +219,16 @@ string Node::word() {
         tokNumCounter++;
         ret = "self->" + token[tokNumCounter].tokChar;
         //tokNumCounter++;
+        return ret;
 
-    } else {
-        if (langMode == LLIR && Regs.Reg.find(token[tokNumCounter].tokChar) != Regs.Reg.end()) {
+    }
+    if (langMode == LLIR && Regs.Reg.find(token[tokNumCounter].tokChar) != Regs.Reg.end()) {
+
             ret = Regs.Reg[token[tokNumCounter].tokChar].regName;
         }
 
-        else
-            ret = token[tokNumCounter].tokChar;
-    }
+    else
+        ret = token[tokNumCounter].tokChar;
 
     return ret;
 }

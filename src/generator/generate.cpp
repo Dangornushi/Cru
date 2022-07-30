@@ -53,3 +53,31 @@ string argMove(string indent, ReturnArgumentAndMove Argument, int *regCounter, R
 	return ret;
 }
 
+string bitcast(string indent, Register Regs, string name) {
+	string ret;
+	string type = Regs.Reg[name].type;
+	string vName = Regs.Reg[name].name;
+	string len = Regs.Reg[name].len;
+	string r2 = "%" + std::to_string(Regs.registerAmount++);
+	string r3 = "%" + std::to_string(Regs.registerAmount++);
+
+	ret =  indent + name + " = alloca " + type + ", align 1\n";
+	ret += indent + r2 + " = bitcast " + type + "* " + name + " to i8*\n";
+	ret += indent + "call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 " + r2 + ", i8* align 1 getelementptr inbounds (" + type + ", " + type + "* " + vName + ", i32 0, i32 0), i64 " + len + ", i1 false)\n";
+
+	return ret;
+}
+
+string strDef(string indent, Register *Regs, string name, string value) {
+	string ret;
+	string r1 = "%" + std::to_string(Regs->registerAmount++);
+	string len = std::to_string(value.size());
+
+	Regs->Reg[r1] = {name, r1, "["+ len + " x i8]", len, "\%s"};
+
+	ret = bitcast(indent, *Regs, r1);
+
+	//Regs->registerAmount++;
+	return ret;
+}
+
