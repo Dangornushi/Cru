@@ -11,30 +11,32 @@ string Node::funcCallArtgment() {
 
     while (1) {
         nowWord = token[tokNumCounter].tokNum;
-
-        if (nowWord == RBRACKET || nowWord == RRIPPLE || nowWord == SEMICORON) 
-            // tokNumCounter--;
+        if (nowWord == SEMICORON)  {
+            tokNumCounter--;
             break;
-        else if (token[tokNumCounter].tokNum == CANMA) {
-            oneArgment.push_back(',');
-            tokNumCounter += 2;
-            continue;
         }
 
+        else if (nowWord == RBRACKET || nowWord == RRIPPLE) 
+            break;
+        //else 
         string arg;
 
         switch (langMode) {
             case LLIR: {
                 arg = addSub();
 
+                if (arg[0] != '%')
+                    break;
+
                 string argmentReg;
                 string type                       = Regs.Reg[Regs.llirReg[arg]].type;
-                string newReg                     = "%" + std::to_string(registerAmount);
+                string newReg                     = "%" + std::to_string(registerAmount++);
                 string init_outputFormatSpecifier = Regs.Reg[Regs.llirReg[arg]].outputFormatSpecifier;
 
                 Type   r1                         = {"", arg, type, typeSize[type], init_outputFormatSpecifier};
 
                 loads += load(addIndent(), r1, newReg);
+
                 oneArgment += type + " noundef " + newReg;
 
                 Regs.llirReg[newReg] = token[tokNumCounter].tokChar;
@@ -50,10 +52,17 @@ string Node::funcCallArtgment() {
                     oneArgment.push_back(arg[i]);
                 tokNumCounter ++;
 
-                oneArgment.push_back(',');
+            //    oneArgment.push_back(',');
                 break;
             }
         }
+
+        if (token[tokNumCounter].tokNum == CANMA) {
+            oneArgment.push_back(',');
+            tokNumCounter ++;
+            continue;
+        }
+
         tokNumCounter++;
     }
     return oneArgment;

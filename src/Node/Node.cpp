@@ -166,7 +166,9 @@ string Node::funCall(string instanceName) {
             funcName = "__CRU_Add";
 
         tokNumCounter++;
+
         string argment = funcCallArtgment();
+
         if (instanceName != "") {
             (argment == "") ? argment = "&" + instanceName : argment = "&" + instanceName + ", " + argment;
         } else {}
@@ -174,7 +176,6 @@ string Node::funCall(string instanceName) {
         expect(")");
 
         if (langMode == LLIR) {
-            registerAmount++;
             string r1 = std::to_string(registerAmount++);
 
             ret  = loads;
@@ -258,8 +259,6 @@ string Node::eval() {
         string regR = funCall("");
         tokNumCounter++;
 
-        ++registerAmount;
-
         if (regL[0] == '%') {
             // regL is register.
             type = Regs.Reg[Regs.llirReg[regL]].len;
@@ -277,8 +276,7 @@ string Node::eval() {
             // regR is register.
             type = typeSize[regType[regR]];
 
-            ret += addIndent() + "%" + std::to_string(registerAmount) + " = load " + regType[regR] + ", " +
-                   regType[regR] + "* " + regR + ", align " + type + "\n";
+            ret += addIndent() + "%" + std::to_string(registerAmount) + " = load " + regType[regR] + ", " + regType[regR] + "* " + regR + ", align " + type + "\n";
 
             regR = "%" + std::to_string(registerAmount++);
         } else

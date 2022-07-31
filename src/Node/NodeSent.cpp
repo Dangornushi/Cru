@@ -245,6 +245,7 @@ string Node::sent() {
 
             expect("if");
             tokNumCounter++;
+
             evalS = eval();
 
             if (langMode == PYTHON)
