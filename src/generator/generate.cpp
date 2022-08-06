@@ -14,6 +14,15 @@ string move(string indent, Type r1, string r2) {
  * plan B: Take string data as an argument.
  * plan C: Join load to a class, And take a register as an argument.
  */
+
+string load(string regName, string type, string typeSize) {
+	return "load " + type +", " + type + "* " + regName + ", align " + typeSize + "\n";
+}
+
+string store(string regName, string type, string typeSize, string varName) {
+	return "store " + type + " " + varName + ", " + type + "* " + regName  + ", align " + typeSize + "\n";
+}
+
 string load(string indent, Type r1, string r2) {
 	string ret;
 	ret = indent + r2 + " = load " + r1.type + ", " + r1.type + "* " + r1.regName + ", align " + r1.len + "\n";
@@ -70,14 +79,13 @@ string bitcast(string indent, Register Regs, string name) {
 
 string strDef(string indent, Register *Regs, string name, string value) {
 	string ret;
-	string r1 = "%" + std::to_string(Regs->registerAmount++);
+	string r1 = "%" + std::to_string(Regs->registerAmount);
 	string len = std::to_string(value.size());
 
 	Regs->Reg[r1] = {name, r1, "["+ len + " x i8]", len, "\%s"};
 
 	ret = bitcast(indent, *Regs, r1);
 
-	//Regs->registerAmount++;
 	return ret;
 }
 

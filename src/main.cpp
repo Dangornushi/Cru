@@ -48,9 +48,9 @@ vector<string> pathSplit(string p) {
         if (tmp == '/') {
             ret.insert(ret.end(), data);
             data = "";
+            continue;
         }
-        else
-            data += tmp;
+        data += tmp;
     }
     return ret;
 }
@@ -97,42 +97,50 @@ void Main::write() {
 }
 
 void Main::run() {
-    string compiler;
-    string option;
-    string compilefile;
-    string outputfile;
-    string runCmd;
+    string compiler    = "";
+    string option      = "";
+    string compilefile = "";
+    string outputfile  = "";
+    string runCmd      = "";
 
-    if (langMode == CPP) {
-        compiler    = "CC";
-        option      = "-o";
-        outputfile  = /*"crucache/" + */ splitStr(fileName);
-        compilefile = "crucache/" + splitStr(fileName) + ".c";
+    switch (langMode) {
+        case CPP: {
+            compiler    = "CC";
+            option      = "-o";
+            outputfile  = splitStr(fileName);
+            compilefile = "crucache/" + splitStr(fileName) + ".c";
 
-        runCmd = compiler + " " + option + " " + outputfile + " " + compilefile;
+            runCmd      = compiler + " " + option + " " + outputfile + " " + compilefile;
+            break;
+        }
+
+        case PYTHON: {
+            compiler    = "python3";
+            compilefile = splitStr(fileName) + ".py";
+
+            runCmd      = compiler + " " + compilefile;
+            break;
+        }
+
+        case RUST: {
+            compilefile = splitStr(fileName) + ".rs";
+
+            runCmd      = "cargo bootimage && qemu-system-x86_64 -drive format=raw,file=../target/x86_64-CRU_os/debug/bootimage-CRU_os.bin";
+            break;
+        }
+
+        case LLIR: {
+            outputfile  = splitStr(fileName);
+            compilefile = splitStr(fileName) + ".ll";
+
+            runCmd      = "llc " + compilefile + "; clang " + outputfile + ".s -o " + outputfile;
+            break;
+        }
+
+        default:
+            break;
     }
-    else if (langMode == PYTHON) {
-        compiler    = "python3";
-        option      = "";
-        outputfile  = "";
-        compilefile = /*"crucache/" +*/ splitStr(fileName) + ".py";
 
-        runCmd = compiler + " " + compilefile;
-    }
-    else if (langMode == RUST) {
-        compiler    = "";
-        option      = "";
-        outputfile  = "";
-        compilefile = /*"crucache/" +*/ splitStr(fileName) + ".rs";
-
-        runCmd = "cargo bootimage && qemu-system-x86_64 -drive format=raw,file=../target/x86_64-CRU_os/debug/bootimage-CRU_os.bin";
-    }
-    else if (langMode == LLIR) {
-        outputfile  = splitStr(fileName);
-        compilefile = splitStr(fileName) + ".ll";
-
-        runCmd = "llc " + compilefile + "; clang " + outputfile + ".s -o " + outputfile ;
-    }
     char *cstr = new char[runCmd.size() + 1]; // メモリ確保
 
     std::char_traits<char>::copy(cstr, runCmd.c_str(), runCmd.size() + 1);

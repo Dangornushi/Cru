@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <memory>
+#include <string>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <map>
@@ -34,20 +35,24 @@ Node::Node(int langMode) {
         {BIG, "slt"},
         {MINI, "sgt"},
     };
+    this->usedReturn = false;
 }
 
 // loop to the end of file.
 string Node::parse(vector<tokens> geToken) {
     tokNumCounter = 0;
     string write;
+    string pathVec = execDir();
+    string filedata;
+    string filename;
+    string ret;
+
     token = geToken;
+
     if (token[tokNumCounter].tokNum == IMPORT) {
-        string pathVec = execDir();
 
         tokNumCounter++;
-        string filedata;
-        string filename = pathVec + parseQuort(word());
-        string ret;
+        filename = pathVec + parseQuort(word());
 
         std::ifstream reading_file;
         reading_file.open(filename, std::ios::in);
@@ -60,6 +65,18 @@ string Node::parse(vector<tokens> geToken) {
         expect(";");
 
         tokNumCounter++;
+        write += parse(geToken);
+    }
+
+    if (langMode == CPP) {
+
+        filename = pathVec + "std.h";
+
+        std::ifstream reading_file;
+        reading_file.open(filename, std::ios::in);
+
+        while (std::getline(reading_file, filedata))
+            write += filedata + "\n";
     }
 
     write += functionDefinition();
@@ -81,57 +98,111 @@ string Node::addIndent() {
 }
 
 string Node::addSub() {
-
     string ret = mulDiv();
-    int nextWord = token[tokNumCounter + 1].tokNum;
 
-    if (nextWord == PLUS || nextWord == MIN) {
+    int nextWord;
+    string op;
+    string r1;
+    string loadRet;
+    bool nextOP = token[tokNumCounter + 1].tokNum == PLUS || token[tokNumCounter + 1].tokNum == MIN;
+
+    if (langMode == LLIR && nextOP) {
+        r1        = ret;
+        ret = "";
+        if (r1[0] == ' ') {
+            ret += r1 + "\n";
+            Regs.nowVar = "%" + std::to_string(registerAmount-1);
+        } else {
+            Regs.nowVar = "%" + std::to_string(registerAmount++);
+            ret += addIndent() + Regs.nowVar + " = " + load(r1, "i32", "4");
+        }
+    }
+
+    while (token[tokNumCounter + 1].tokNum == PLUS || token[tokNumCounter + 1].tokNum == MIN) {
+        op = token[tokNumCounter + 1].tokChar;
         tokNumCounter += 2;
-        string s2 = addSub();
-
-        if (!isDigit(ret) && !isDigit(s2)) {
-            return std::to_string(std::stoi(ret) + std::stoi(s2));
+        string s2;
+        if (!isDigit(ret) && !isDigit(token[tokNumCounter].tokChar)) {
+            switch (nextWord){
+                case PLUS:
+                    return std::to_string(std::stoi(ret) + std::stoi(s2));
+                case MIN:
+                    return std::to_string(std::stoi(ret) - std::stoi(s2));
+                default:
+                    break;
+            }
         }
         else;
 
         if (langMode == LLIR) {
 
-            string tmp = ret;
-            string type = regType[tmp];
-            string r1 = "%" + std::to_string(registerAmount++);
-            string r2 = "%" + std::to_string(registerAmount);
-            string r3 = r2;
+            string tmp;
+            string s2;
+            string newS2;
+            string newNowVar;
+            string ansReg;
 
-            if (ret[0] == '%') {
-                ret = load(addIndent(), {"", ret, "i32", "4"}, r1);
-
+            if (ret[0] != ' ') {
+                Regs.nowVar = r1;
             }
+
+            s2 = mulDiv();
+
             if (s2[0] == '%') {
-                ret += load(addIndent(), {"", s2, "i32", "4"}, r2);
-                r2 = "%" + std::to_string(++registerAmount);
+                newS2 = "%" + std::to_string(registerAmount++);
+                ret += addIndent() + newS2 + " = " + load(s2, "i32", "4");
+
+            }  else if (!isDigit(s2)) {
+                newS2 = s2;
+
+            } else {
+                newS2 = "%" + std::to_string(registerAmount-1);
+                ret += s2 + "\n";
+
             }
 
-            (nextWord == PLUS)
-                ? ret += addIndent() + r2 +" = add nsw i32 " + r1 + ", " + r3 + "\n"
-                : ret += addIndent() + r2 +" = sub nsw i32 " + r1 + ", " + r3 + "\n";
-        } else
-            ret += "+" + s2;
-        return ret;
+            newNowVar = Regs.nowVar;
+
+            ansReg = "%" + std::to_string(registerAmount++);
+
+            ret += addIndent();
+            ret += ansReg + " = ";
+
+            if (op == "+")
+                oneBeforeInstruction = "add";
+            if (op == "-")
+                oneBeforeInstruction = "sub";
+
+            ret += oneBeforeInstruction + " nsw i32 " + newNowVar + ", " + newS2 +"\n";
+
+            Regs.nowVar = ansReg;
+            llirType[Regs.nowVar] = "i32";
+
+        } else {
+
+            s2 = addSub();
+
+            ret += op + s2;
+        }
     }
 
-    return ret;
+    return loadRet + ret;
 }
 
+// TODO: 整理
 string Node::mulDiv() {
     string ret = funCall("");
+    string type;
+
+    type = regType[ret];
 
     if (token[tokNumCounter + 1].tokNum == MUL) {
         tokNumCounter += 2;
         string s2 = funCall("");
 
         if (langMode == LLIR) {
-            string type = regType[ret];
-            ret = addIndent() + "%" + std::to_string(registerAmount) + " = load " + type +", " + type + "* " + ret + ", align " + typeSize[type] + "\n";   
+            // load(string ret, stirng type, string typeSize);
+            ret = addIndent() + "%" + std::to_string(registerAmount) + " = " + load(ret, type, typeSize[type]);   
             registerAmount++;
             ret += addIndent() + "%" + std::to_string(registerAmount) +" = mul nsw i32 " + "%" + std::to_string(registerAmount-1) + ", " + s2 + "\n";
         }
@@ -140,13 +211,15 @@ string Node::mulDiv() {
         }
         return ret;
     }
+
+    type = regType[ret];
+
     if (token[tokNumCounter + 1].tokNum == DIV) {
         tokNumCounter += 2;
         string s2 = funCall("");
         if (langMode == LLIR) {
-            string type = regType[ret];
-            ret = addIndent() + "%" + std::to_string(registerAmount) + " = load " + type +", " + type + "* " + ret + ", align " + typeSize[type] + "\n";   
-            registerAmount++;
+            ret = addIndent() + "%" + std::to_string(registerAmount) + " = " + load(ret, type, typeSize[type]);   
+            registerAmount+=2;
             ret += addIndent() + "%" + std::to_string(registerAmount) +" = sdiv nsw i32 " + "%" + std::to_string(registerAmount-1) + ", " + s2 + "\n";
         }
         else {
@@ -154,18 +227,23 @@ string Node::mulDiv() {
         }
         return ret;
     }
-    return funCall("");
+    return ret;
 }
 
 string Node::funCall(string instanceName) {
     string ret;
-
+    
     if (token[tokNumCounter + 1].tokNum == LBRACKET) {
         string funcName = token[tokNumCounter++].tokChar;
         if (funcName == "_add" && langMode == CPP)
             funcName = "__CRU_Add";
 
+        Regs.Reg[funcName] = { funcName, funcName,"i32", "4", "\%d" };
+        Regs.llirReg[funcName] = funcName;
+
         tokNumCounter++;
+
+        Regs.nowVar = funcName;
 
         string argment = funcCallArtgment();
 
@@ -180,7 +258,11 @@ string Node::funCall(string instanceName) {
 
             ret  = loads;
 
-            ret += addIndent() + "%" + r1 + " = call i32 @" + funcName + "(" + argment + ")";
+            loads = "";
+
+            oneBeforeInstruction = "call";
+
+            ret += addIndent() + "%" + r1 + " = " + oneBeforeInstruction + " i32 @" + funcName + "(" + argment + ")\n";
 
         }else {
             ret = funcName + "(" + argment + ")";
@@ -230,9 +312,8 @@ string Node::word() {
 
     }
     if (langMode == LLIR && Regs.Reg.find(token[tokNumCounter].tokChar) != Regs.Reg.end()) {
-
             ret = Regs.Reg[token[tokNumCounter].tokChar].regName;
-        }
+    }
 
     else
         ret = token[tokNumCounter].tokChar;
@@ -287,7 +368,9 @@ string Node::eval() {
 
         opreg = opToIR[op];
 
-        ret += addIndent() + r1 + " = icmp " + opreg + " i32 " + regL + ", " + regR + "\n";
+        oneBeforeInstruction = "icmp";
+
+        ret += addIndent() + r1 + " = " + oneBeforeInstruction + " " + opreg + " i32 " + regL + ", " + regR + "\n";
     }
     else {
         ret = comparison(tokNumCounter, token[tokNumCounter].tokChar);

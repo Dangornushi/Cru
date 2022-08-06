@@ -29,6 +29,7 @@ string Node::functionDefinition() {
             if (token[tokNumCounter].tokNum != RBRACKET)  {
                 argment = funcDefArgument();
                 argment.argMove = argMove("    ", argment, &registerAmount, &Regs);
+                registerAmount++;
             }
             expect(")");
             tokNumCounter++; // )

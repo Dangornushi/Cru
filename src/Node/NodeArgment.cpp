@@ -11,13 +11,15 @@ string Node::funcCallArtgment() {
 
     while (1) {
         nowWord = token[tokNumCounter].tokNum;
-        if (nowWord == SEMICORON)  {
+
+        if (nowWord == SEMICORON || token[tokNumCounter-1].tokNum == RBRACKET)  {
             tokNumCounter--;
             break;
         }
 
-        else if (nowWord == RBRACKET || nowWord == RRIPPLE) 
+        else if (nowWord == RBRACKET || nowWord == RRIPPLE) {
             break;
+        }
         //else 
         string arg;
 
@@ -25,17 +27,23 @@ string Node::funcCallArtgment() {
             case LLIR: {
                 arg = addSub();
 
-                if (arg[0] != '%')
-                    break;
-
                 string argmentReg;
                 string type                       = Regs.Reg[Regs.llirReg[arg]].type;
-                string newReg                     = "%" + std::to_string(registerAmount++);
+                string newReg                     = "%" + std::to_string(registerAmount);
                 string init_outputFormatSpecifier = Regs.Reg[Regs.llirReg[arg]].outputFormatSpecifier;
 
-                Type   r1                         = {"", arg, type, typeSize[type], init_outputFormatSpecifier};
-
-                loads += load(addIndent(), r1, newReg);
+                if (arg[0] == ' ') {
+                    loads += arg;
+                    type = llirType[Regs.nowVar];
+                    newReg = Regs.nowVar;
+                } else if (!isDigit(arg)){
+                    newReg = arg;
+                    type = "i32";
+                } else {
+                    Type r1 = {"", arg, type, typeSize[type], init_outputFormatSpecifier};
+                    loads += load(addIndent(), r1, newReg);
+                    registerAmount++;
+                }
 
                 oneArgment += type + " noundef " + newReg;
 
@@ -44,7 +52,8 @@ string Node::funcCallArtgment() {
                 break;
             }
             default: {
-                arg = word();
+                arg = addSub();
+
                 if (token[tokNumCounter - 1].tokChar == "{")
                     arg = "{" + arg + "}";
 
@@ -52,7 +61,6 @@ string Node::funcCallArtgment() {
                     oneArgment.push_back(arg[i]);
                 tokNumCounter ++;
 
-            //    oneArgment.push_back(',');
                 break;
             }
         }
@@ -65,6 +73,7 @@ string Node::funcCallArtgment() {
 
         tokNumCounter++;
     }
+
     return oneArgment;
 }
 
