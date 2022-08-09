@@ -69,6 +69,8 @@ string Node::functionDefinition() {
 
         indent++;
 
+        oneBeforeInstruction = "store";
+
         Data = sent();
 
         registerAmount = nowRegNum;

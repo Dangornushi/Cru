@@ -42,6 +42,7 @@ string Node::funcCallArtgment() {
                 } else {
                     Type r1 = {"", arg, type, typeSize[type], init_outputFormatSpecifier};
                     loads += load(addIndent(), r1, newReg);
+                    oneBeforeInstruction = "load";
                     registerAmount++;
                 }
 
@@ -83,8 +84,6 @@ ReturnArgumentAndMove Node::funcDefArgument() {
     string valueType;
     string OFS;
     ReturnArgumentAndMove argument;
-
-    registerAmount = 0;
 
 	while (1) {
         if (token[tokNumCounter - 1].tokNum == CANMA || token[tokNumCounter].tokNum == RBRACKET) {

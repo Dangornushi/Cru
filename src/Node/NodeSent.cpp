@@ -31,6 +31,7 @@ string Node::sent() {
                 isMut = True;
                 tokNumCounter++;
             }
+
             regSName  = token[tokNumCounter].tokChar;
             valueName = word();
 
@@ -219,7 +220,25 @@ string Node::sent() {
                             typeSize[valueType],
                             "\%d",
                         };
-                        ret += move(addIndent(), Regs.Reg[regSName], value);
+
+                        if (value[0] == '%') {
+                            string tmp = value;
+                            string tmp2;
+
+                            tmp = "%" + std::to_string(registerAmount-1);
+                            value = "%" + std::to_string(registerAmount);
+                            registerAmount++;
+                            tmp2 = "%" + std::to_string(registerAmount);
+
+                            ret =  addIndent() + value + " = alloca " + valueType + ", align " + typeSize[valueType] + "\n" ; 
+                            ret += addIndent() + tmp2 + " = " + load(tmp, valueType, typeSize[valueType]);
+                            ret += addIndent() + "store " + valueType + " " + tmp2 + ", " + valueType + "* " + registerName  + ", align " + typeSize[valueType] + "\n";
+                        }
+                        else if (value[0] == ' ')  {
+                            ret += value + move(addIndent(), Regs.Reg[regSName], Regs.nowVar);
+                        }
+                        else
+                            ret += move(addIndent(), Regs.Reg[regSName], value );
                         oneBeforeInstruction = "store";
                     }
                     registerAmount++;
@@ -231,11 +250,12 @@ string Node::sent() {
                     expect(";");
                     tokNumCounter++;
 
+                    Regs.nowVar = "";
+
                     ret += sent();
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
 
             return ret;
@@ -263,6 +283,8 @@ string Node::sent() {
 
             expect("{");
             tokNumCounter++;
+            Register tmpReg = Regs;
+
             if (langMode == LLIR) {
                 registerAmount--;
 
@@ -279,6 +301,8 @@ string Node::sent() {
 
                 indent--;
             }
+            Regs = tmpReg;
+
             expect("}");
             tokNumCounter++;
             expect(";");
@@ -306,17 +330,14 @@ string Node::sent() {
 
                     r3 = std::to_string(registerAmount++);
 
-                    ret += tmpR2 + ":\n" + sentS +
-                    addIndent() + "br label %" + r3 + "\n";
+                    ret += tmpR2 + ":\n" + sentS;
+                    usedReturn == 0 ?  addIndent() + "br label %" + r3 + "\n": "";
                     ret += tmpR3 + ":\n";
 
                     ret += elseS + "\n";
-                    usedReturn == 0 ? ret += addIndent() + "br label %" + r3 + "\n" : ret += "\n";
-                    ret += r3 + ":\n";
+                    usedReturn == 0 ? ret += addIndent() + "br label %" + r3 + "\n" + r3 + ":\n" :"";
                 } else {
                     ret += tmpR2 + ":\n" + sentS;
-                    usedReturn==0 ? ret += addIndent() + "br label %" + tmpR3 + "\n" : ret += "\n";
-                    ret += tmpR3 + ":\n";
                 }
                 usedReturn = false;
             } else {
@@ -393,6 +414,7 @@ string Node::sent() {
 
                     string dataN = Regs.llirReg[data];
                     string type  = Regs.Reg[Regs.llirReg[data]].type;
+                    string typeSpecifier = Regs.Reg[Regs.llirReg[data]].outputFormatSpecifier;
                     string iNum;
 
                     if (oneBeforeInstruction == "call") {
@@ -402,21 +424,29 @@ string Node::sent() {
 
                     }
 
+                    else if (loadR1.empty()) {
+                        loadR1 = "%" + std::to_string(registerAmount++);
+                        loadR2 = "%" + std::to_string(registerAmount++);
+                        ret += addIndent() + loadR1 + " = " + load(data, Regs.Reg[dataN].type, typeSize[Regs.Reg[dataN].type]);
+                        iNum = Regs.Reg[dataN].type;
+                    } 
+
                     else {
                         loadR2 = "%" + std::to_string(registerAmount++);
-                        if (Regs.Reg[Regs.llirReg[data]].outputFormatSpecifier == "\%s") {
+                        if (typeSpecifier == "\%s") {
                             ret += addIndent() + loadR1;
 
                             ret += " = getelementptr inbounds " + type + ", " + type + "* " + Regs.llirReg[data] + ", i64 0, i64 0";
                             iNum = "i8*";
+                            
                         } else {
+
                             ret += " = " + load(data, Regs.Reg[dataN].type, typeSize[Regs.Reg[dataN].type]);
 
                             ret += Regs.Reg[dataN].len;
                             iNum = "i32";
                         }
                         ret += "\n";
-
                     }
 
                     ret += addIndent() + loadR2 + " = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds ([3 x i8], [3 x i8]* @.str." + std::to_string(strAmount++) + ", i64 0, i64 0), " + iNum + " noundef " + loadR1 + ")\n";

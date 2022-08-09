@@ -34,6 +34,10 @@ Node::Node(int langMode) {
         {EQEQ, "eq"},
         {BIG, "slt"},
         {MINI, "sgt"},
+        {PLUS, "add"},
+        {MIN, "sub"},
+        {DIV, "div"},
+        {MUL, "mul"},
     };
     this->usedReturn = false;
 }
@@ -104,84 +108,75 @@ string Node::addSub() {
     string op;
     string r1;
     string loadRet;
-    bool nextOP = token[tokNumCounter + 1].tokNum == PLUS || token[tokNumCounter + 1].tokNum == MIN;
+    int nextOP = token[tokNumCounter + 1].tokNum;
+    bool nextOPisTrue = nextOP == PLUS || nextOP == MIN;
 
-    if (langMode == LLIR && nextOP) {
+    if (langMode == LLIR && nextOPisTrue) {
+
         r1        = ret;
         ret = "";
         if (r1[0] == ' ') {
             ret += r1 + "\n";
-            Regs.nowVar = "%" + std::to_string(registerAmount-1);
         } else {
             Regs.nowVar = "%" + std::to_string(registerAmount++);
             ret += addIndent() + Regs.nowVar + " = " + load(r1, "i32", "4");
         }
     }
 
-    while (token[tokNumCounter + 1].tokNum == PLUS || token[tokNumCounter + 1].tokNum == MIN) {
+    while (nextOPisTrue) {
         op = token[tokNumCounter + 1].tokChar;
+        nextOP = token[tokNumCounter + 1].tokNum;
         tokNumCounter += 2;
+
         string s2;
-        if (!isDigit(ret) && !isDigit(token[tokNumCounter].tokChar)) {
+
+        s2 = token[tokNumCounter].tokChar;
+
+        if (!isDigit(ret) && !isDigit(s2)) {
+            int Lnum = std::stoi(ret);
+            int Rnum = std::stoi(s2);
+
             switch (nextWord){
                 case PLUS:
-                    return std::to_string(std::stoi(ret) + std::stoi(s2));
+                    return std::to_string(Lnum + Rnum);
                 case MIN:
-                    return std::to_string(std::stoi(ret) - std::stoi(s2));
+                    return std::to_string(Lnum - Rnum);
                 default:
                     break;
             }
         }
-        else;
+        else if (langMode == LLIR) {
 
-        if (langMode == LLIR) {
-
-            string tmp;
-            string s2;
             string newS2;
             string newNowVar;
             string ansReg;
 
-            if (ret[0] != ' ') {
+            if (ret[0] != ' ')
                 Regs.nowVar = r1;
-            }
+
+            newNowVar = Regs.nowVar;
 
             s2 = mulDiv();
 
             if (s2[0] == '%') {
                 newS2 = "%" + std::to_string(registerAmount++);
                 ret += addIndent() + newS2 + " = " + load(s2, "i32", "4");
-
             }  else if (!isDigit(s2)) {
                 newS2 = s2;
-
             } else {
                 newS2 = "%" + std::to_string(registerAmount-1);
                 ret += s2 + "\n";
-
             }
 
-            newNowVar = Regs.nowVar;
-
             ansReg = "%" + std::to_string(registerAmount++);
+            nextOPisTrue = token[tokNumCounter + 1].tokNum == PLUS || token[tokNumCounter + 1].tokNum == MIN;
+            oneBeforeInstruction = opToIR[nextOP];
+            ret += addIndent() + ansReg + " = " + oneBeforeInstruction + " nsw i32 " + newNowVar + ", " + newS2 +"\n";
 
-            ret += addIndent();
-            ret += ansReg + " = ";
-
-            if (op == "+")
-                oneBeforeInstruction = "add";
-            if (op == "-")
-                oneBeforeInstruction = "sub";
-
-            ret += oneBeforeInstruction + " nsw i32 " + newNowVar + ", " + newS2 +"\n";
-
-            Regs.nowVar = ansReg;
             llirType[Regs.nowVar] = "i32";
 
         } else {
-
-            s2 = addSub();
-
+            s2 = mulDiv();
             ret += op + s2;
         }
     }
@@ -192,42 +187,91 @@ string Node::addSub() {
 // TODO: 整理
 string Node::mulDiv() {
     string ret = funCall("");
-    string type;
 
-    type = regType[ret];
+    int nextWord;
+    string op;
+    string r1;
+    string loadRet;
+    int nextOP = token[tokNumCounter + 1].tokNum;
+    bool nextOPisTrue = nextOP == MUL || nextOP == DIV;
 
-    if (token[tokNumCounter + 1].tokNum == MUL) {
-        tokNumCounter += 2;
-        string s2 = funCall("");
 
-        if (langMode == LLIR) {
-            // load(string ret, stirng type, string typeSize);
-            ret = addIndent() + "%" + std::to_string(registerAmount) + " = " + load(ret, type, typeSize[type]);   
-            registerAmount++;
-            ret += addIndent() + "%" + std::to_string(registerAmount) +" = mul nsw i32 " + "%" + std::to_string(registerAmount-1) + ", " + s2 + "\n";
+    if (langMode == LLIR && nextOPisTrue) {
+        r1        = ret;
+        ret       = "";
+
+        if (r1[0] == ' ') {
+            ret += r1 + "\n";
+            Regs.nowVar = "%" + std::to_string(registerAmount-1);
+        }
+        else if (!isDigit(r1)) {
+            Regs.nowVar = r1;
         }
         else {
-            ret = ret + "*" + s2;
+            Regs.nowVar = "%" + std::to_string(registerAmount++);
+            ret += addIndent() + Regs.nowVar + " = " + load(r1, "i32", "4");
         }
-        return ret;
     }
 
-    type = regType[ret];
-
-    if (token[tokNumCounter + 1].tokNum == DIV) {
+    while (nextOPisTrue) {
+        op     = token[tokNumCounter + 1].tokChar;
+        nextOP = token[tokNumCounter + 1].tokNum;
         tokNumCounter += 2;
-        string s2 = funCall("");
-        if (langMode == LLIR) {
-            ret = addIndent() + "%" + std::to_string(registerAmount) + " = " + load(ret, type, typeSize[type]);   
-            registerAmount+=2;
-            ret += addIndent() + "%" + std::to_string(registerAmount) +" = sdiv nsw i32 " + "%" + std::to_string(registerAmount-1) + ", " + s2 + "\n";
+
+        string s2;
+
+        s2 = token[tokNumCounter].tokChar;
+
+        if (!isDigit(ret) && !isDigit(s2)) {
+            int Lnum = std::stoi(ret);
+            int Rnum = std::stoi(s2);
+
+            switch (nextWord){
+                case MUL:
+                    return std::to_string(Lnum * Rnum);
+                case DIV:
+                    return std::to_string(Lnum / Rnum);
+                default:
+                    break;
+            }
         }
-        else {
-            ret = ret + "/" + s2;
+        else if (langMode == LLIR) {
+
+            string newS2;
+            string newNowVar;
+            string ansReg;
+
+            if (ret[0] != ' ')
+                Regs.nowVar = r1;
+
+            s2 = funCall("");
+
+            if (s2[0] == '%') {
+                newS2 = "%" + std::to_string(registerAmount++);
+                ret += addIndent() + newS2 + " = " + load(s2, "i32", "4");
+            }  else if (!isDigit(s2)) {
+                newS2 = s2;
+            } else {
+                newS2 = "%" + std::to_string(registerAmount-1);
+                ret += s2 + "\n";
+            }
+
+            newNowVar = Regs.nowVar;
+            ansReg = "%" + std::to_string(registerAmount++);
+            nextOPisTrue = token[tokNumCounter + 1].tokNum == MUL || token[tokNumCounter + 1].tokNum == DIV;
+            oneBeforeInstruction = opToIR[nextOP];
+            ret += addIndent() + ansReg + " = " + oneBeforeInstruction + " nsw i32 " + newNowVar + ", " + newS2 +"\n";
+            Regs.nowVar = ansReg;
+            llirType[Regs.nowVar] = "i32";
+
+        } else {
+            s2 = funCall("");
+            ret += op + s2;
         }
-        return ret;
-    }
-    return ret;
+
+    }        
+
+    return loadRet + ret;
 }
 
 string Node::funCall(string instanceName) {
@@ -263,6 +307,8 @@ string Node::funCall(string instanceName) {
             oneBeforeInstruction = "call";
 
             ret += addIndent() + "%" + r1 + " = " + oneBeforeInstruction + " i32 @" + funcName + "(" + argment + ")\n";
+
+            Regs.nowVar = "%" + r1;
 
         }else {
             ret = funcName + "(" + argment + ")";
@@ -336,6 +382,7 @@ string Node::eval() {
         string regL = funCall("");
         tokNumCounter++;
         int op = token[tokNumCounter].tokNum;
+        string opStr = token[tokNumCounter].tokChar;
         tokNumCounter++;
         string regR = funCall("");
         tokNumCounter++;
@@ -344,14 +391,12 @@ string Node::eval() {
             // regL is register.
             type = Regs.Reg[Regs.llirReg[regL]].len;
 
-            ret += addIndent() + "%" + std::to_string(registerAmount) + " = load " + Regs.Reg[Regs.llirReg[regL]].type + ", " +
-                    Regs.Reg[Regs.llirReg[regL]].type + "* " + regL + ", align " + type + "\n";
+            ret += addIndent() + "%" + std::to_string(registerAmount) + " = load " + Regs.Reg[Regs.llirReg[regL]].type + ", " + Regs.Reg[Regs.llirReg[regL]].type + "* " + regL + ", align " + type + "\n";
 
             Regs.Reg[regL].name = "%" + std::to_string(registerAmount);
             regL = "%" + std::to_string(registerAmount++);
-        } else
+        } else;
             // regL is not register.
-            ;
 
         if (regR[0] == '%') {
             // regR is register.
@@ -360,9 +405,8 @@ string Node::eval() {
             ret += addIndent() + "%" + std::to_string(registerAmount) + " = load " + regType[regR] + ", " + regType[regR] + "* " + regR + ", align " + type + "\n";
 
             regR = "%" + std::to_string(registerAmount++);
-        } else
+        } else;
             // regR is not register.
-            ;
 
         r1 = "%" + std::to_string(registerAmount++);
 
