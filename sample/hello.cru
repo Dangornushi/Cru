@@ -1,0 +1,5 @@
+fn main(): int {
+	let hello: string <- "Hello, World!!";
+	put hello;
+	return 0;
+}

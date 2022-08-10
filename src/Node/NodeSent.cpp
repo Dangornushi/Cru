@@ -191,16 +191,11 @@ string Node::sent() {
                         for (index = 1; index < value.size() - 1; index++)
                             tmp += value[index];
 
-                        value     = tmp;
-                        type      = "[" + std::to_string(index - 1) + " x i8]";
-                        strDefine = registerName +
-                            " = private unnamed_addr constant " + type +
-                            " c\"" + value + "\", align 1\n";
-
-                        Regs.Reg[regSName]  = {regSName, registerName, type,
-                                               std::to_string(index - 1), "\%s"};
+                        value               = tmp;
+                        type                = "[" + std::to_string(index - 1) + " x i8]";
+                        strDefine           = registerName + " = private unnamed_addr constant " + type + " c\"" + value + "\", align 1\n";
+                        Regs.Reg[regSName]  = {regSName, registerName, type, std::to_string(index - 1), "\%s"};
                         Regs.registerAmount = registerAmount;
-
                         string r1           = "%" + std::to_string(registerAmount);
 
                         ret += strDef(addIndent(), &Regs, registerName, value);
@@ -225,10 +220,9 @@ string Node::sent() {
                             string tmp = value;
                             string tmp2;
 
-                            tmp = "%" + std::to_string(registerAmount-1);
-                            value = "%" + std::to_string(registerAmount);
-                            registerAmount++;
-                            tmp2 = "%" + std::to_string(registerAmount);
+                            tmp   = "%" + std::to_string(registerAmount - 1);
+                            value = "%" + std::to_string(registerAmount++);
+                            tmp2  = "%" + std::to_string(registerAmount);
 
                             ret =  addIndent() + value + " = alloca " + valueType + ", align " + typeSize[valueType] + "\n" ; 
                             ret += addIndent() + tmp2 + " = " + load(tmp, valueType, typeSize[valueType]);
@@ -355,17 +349,18 @@ string Node::sent() {
                     string size = typeSize[regType[data]];
                     string ofs;
 
+                    loadR1      = "%" + std::to_string(registerAmount++);
+
                     if (data[0] == ' ') {
                         ret += data;
-                        data = Regs.nowVar;
-                        loadR1 = "%" + std::to_string(registerAmount++);
+                        data        = Regs.nowVar;
                         Regs.nowVar = loadR1;
-                        ofs = "\%d";
-                    }
-                    else
+                        ofs         = "\%d";
+                    } else
                         ofs = Regs.Reg[Regs.llirReg[data]].outputFormatSpecifier;
 
                     strDefine += "@.str." + std::to_string(strAmount) +" = private unnamed_addr constant [3 x i8] c\"" + ofs + "\\00\", align ";
+
                     if (size != "")
                         strDefine += "1\n";
                     else
@@ -377,33 +372,30 @@ string Node::sent() {
                     string iNum;
 
                     if (oneBeforeInstruction == "call") {
-                        loadR2 = loadR1;
-                        loadR1 = "%" + std::to_string(registerAmount - 2);
-                        iNum = "i32";
-
+                        ret += addIndent() + "%" + std::to_string(registerAmount - 1) + " = getelementptr inbounds " + type + ", " + type + "* " + Regs.llirReg[data] + ", i64 0, i64 0\n";
+                        loadR2 = "%" + std::to_string(registerAmount++);
+                        iNum = "i8*";
                     }
 
                     else if (loadR1.empty()) {
                         loadR1 = "%" + std::to_string(registerAmount++);
                         loadR2 = "%" + std::to_string(registerAmount++);
-                        ret += addIndent() + loadR1 + " = " + load(data, Regs.Reg[dataN].type, typeSize[Regs.Reg[dataN].type]);
                         iNum = Regs.Reg[dataN].type;
+                        ret += addIndent() + loadR1 + " = " + load(data, iNum, typeSize[iNum]);
                     } 
 
                     else {
                         loadR2 = "%" + std::to_string(registerAmount++);
                         if (typeSpecifier == "\%s") {
                             ret += addIndent() + loadR1;
-
                             ret += " = getelementptr inbounds " + type + ", " + type + "* " + Regs.llirReg[data] + ", i64 0, i64 0";
                             iNum = "i8*";
                             
                         } else {
-
                             ret += " = " + load(data, Regs.Reg[dataN].type, typeSize[Regs.Reg[dataN].type]);
-
                             ret += Regs.Reg[dataN].len;
                             iNum = "i32";
+
                         }
                         ret += "\n";
                     }
@@ -425,8 +417,7 @@ string Node::sent() {
                 if (token[tokNumCounter].tokChar == "int")
                     ret = addIndent() + "printf(\"%d\"," + data + ");\n";
                 else if (token[tokNumCounter].tokChar == "vec")
-                    ret =
-                        addIndent() + "__Cru_Vec_string_put(&" + data + ");\n";
+                    ret = addIndent() + "__Cru_Vec_string_put(&" + data + ");\n";
                 tokNumCounter++;
             }
             expect(";");
@@ -456,7 +447,6 @@ string Node::sent() {
         case RETURN: {
             string ret;
             
-
             expect("return");
             tokNumCounter++;
 
@@ -473,13 +463,10 @@ string Node::sent() {
 
                     if (data[0] == ' ' && !Regs.nowVar.empty()) {
                         string tmp = "%" + std::to_string(registerAmount);
+                        ret        = data;
 
-                        ret = data;
-
-
-                        if (oneBeforeInstruction == "alloca") {
+                        if (oneBeforeInstruction == "alloca")
                             ret += load(addIndent(), {"", Regs.nowVar, nowType, llirType[nowType]}, tmp);
-                        }
                         ret += addIndent() + "ret " + nowType + " " + Regs.nowVar + "\n";
                         Regs.nowVar.clear();
                     } else {

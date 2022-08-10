@@ -79,7 +79,7 @@ string bitcast(string indent, Register Regs, string name) {
 
 string strDef(string indent, Register *Regs, string name, string value) {
 	string ret;
-	string r1 = "%" + std::to_string(Regs->registerAmount);
+	string r1 = "%" + std::to_string(Regs->registerAmount++);
 	string len = std::to_string(value.size());
 
 	Regs->Reg[r1] = {name, r1, "["+ len + " x i8]", len, "\%s"};
