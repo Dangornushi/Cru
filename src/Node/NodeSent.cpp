@@ -261,93 +261,48 @@ string Node::sent() {
             return ret;
         } break;
         case IF: {
-            string ret;
-            string evalS;
-            string sentS;
-            string elseS;
-            string r1;
-            string r2;
-            string r3;
+            string ifSentS;
+            string evalSent;
+            string cmpL;
+            string cmpR;
+            string brAns;
+            string brSent;
 
+            // if $1 == $2
             expect("if");
             tokNumCounter++;
 
-            evalS = eval();
+            evalSent = eval();
+            brAns    = "%" + std::to_string(registerAmount++);
+            cmpL     = std::to_string(registerAmount++);
+            // icmp
+            ret      = evalSent;
 
-            if (langMode == PYTHON)
-                ret = addIndent() + "if " + evalS + ":\n";
-            else if (langMode == CPP)
-                ret = addIndent() + "if (" + evalS + ") {\n";
-            else if (langMode == LLIR)
-                ret = evalS;
+            ifSentS += cmpL + ":\n";
 
-            expect("{");
+            // {
             tokNumCounter++;
-            Register tmpReg = Regs;
+            expect("{");
 
-            if (langMode == LLIR) {
-                registerAmount--;
+            Register tmpRegs = Regs;
 
-                r1    = "%" + std::to_string(registerAmount++);
-                r2    = "%" + std::to_string(registerAmount++);
+            tokNumCounter++;
+            ifSentS += sent();
 
-                sentS = sent();
+            Regs = tmpRegs;
 
-                r3    = "%" + std::to_string(registerAmount++);
-            } else {
-                indent++;
-
-                sentS = sent();
-
-                indent--;
-            }
-            Regs = tmpReg;
-
+            // }
             expect("}");
             tokNumCounter++;
             expect(";");
             tokNumCounter++;
-            if (langMode == LLIR) {
-                r2.erase(0, 1);
-                r3.erase(0, 1);
-                /*
-                 * if -> if data -> else -> else data
-                 */
-                string tmpR2 = {r2};
-                string tmpR3 = {r3};
 
-                ret += addIndent() + "br i1 " + r1 + ", label %" + r2 + ", label %" + r3 + "\n\n";
-
-                if (token[tokNumCounter].tokChar == "else") {
-                    tokNumCounter++;
-                    expect("{");
-                    tokNumCounter++;
-                    elseS = sent();
-                    expect("}");
-                    tokNumCounter++;
-                    expect(";");
-                    tokNumCounter++;
-
-                    r3 = std::to_string(registerAmount++);
-
-                    ret += tmpR2 + ":\n" + sentS;
-                    usedReturn == 0 ?  addIndent() + "br label %" + r3 + "\n": "";
-                    ret += tmpR3 + ":\n";
-
-                    ret += elseS + "\n";
-                    usedReturn == 0 ? ret += addIndent() + "br label %" + r3 + "\n" + r3 + ":\n" :"";
-                } else {
-                    ret += tmpR2 + ":\n" + sentS;
-                }
-                usedReturn = false;
-            } else {
-                ret += sentS;
-            }
-            //ret += addIndent();
-            if (langMode == CPP)
-                ret += "}";
-
-            return ret + sent();
+            cmpR     = std::to_string(registerAmount++);
+             
+            // br:
+            ret += addIndent() + "br i1 " + brAns + ", label %" + cmpL + ", label %" + cmpR + "\n";
+            ret += ifSentS;
+            ret += cmpR + ":\n" + sent();
             break;
         }
         case FOR: {

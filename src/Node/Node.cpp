@@ -17,19 +17,21 @@ string parseQuort(const string s1) {
 }
 
 Node::Node(int langMode) {
-    this->langMode = langMode;
-    this->indent   = 0;
-    this->enumEnabled = False;
-    this->classEnabled = False;
-    this->registerAmount = 0;
+    this->indent          = 0;
+    this->registerAmount  = 0;
+    this->strAmount       = 0;
+    this->funcDefQuantity = 0;
+    this->usedReturn      = false;
+    this->putDefExists    = false;
+    this->enumEnabled     = false;
+    this->classEnabled    = false;
+    this->langMode        = langMode;
+
     this->typeSize = {
         {"i8", "1"},
         {"i32", "4"},
         {"i64", "8"},
     };
-    this->strAmount = 0;
-    this->funcDefQuantity = 0;
-    this->putDefExists = False;
     this->opToIR = {
         {EQEQ, "eq"},
         {BIG, "slt"},
@@ -39,17 +41,17 @@ Node::Node(int langMode) {
         {DIV, "div"},
         {MUL, "mul"},
     };
-    this->usedReturn = false;
 }
 
 // loop to the end of file.
 string Node::parse(vector<tokens> geToken) {
     tokNumCounter = 0;
+
+    string ret;
     string write;
     string pathVec = execDir();
     string filedata;
     string filename;
-    string ret;
 
     token = geToken;
 
@@ -108,13 +110,13 @@ string Node::addSub() {
     string op;
     string r1;
     string loadRet;
-    int nextOP = token[tokNumCounter + 1].tokNum;
-    bool nextOPisTrue = nextOP == PLUS || nextOP == MIN;
+    int    nextOP       = token[tokNumCounter + 1].tokNum;
+    bool   nextOPisTrue = nextOP == PLUS || nextOP == MIN;
 
     if (langMode == LLIR && nextOPisTrue) {
-
-        r1        = ret;
+        r1  = ret;
         ret = "";
+
         if (r1[0] == ' ') {
             ret += r1 + "\n";
         } else {
@@ -155,24 +157,24 @@ string Node::addSub() {
                 Regs.nowVar = r1;
 
             newNowVar = Regs.nowVar;
-
-            s2 = mulDiv();
+            s2        = mulDiv();
 
             if (s2[0] == '%') {
                 newS2 = "%" + std::to_string(registerAmount++);
                 ret += addIndent() + newS2 + " = " + load(s2, "i32", "4");
-            }  else if (!isDigit(s2)) {
+            } else if (!isDigit(s2)) {
                 newS2 = s2;
             } else {
-                newS2 = "%" + std::to_string(registerAmount-1);
+                newS2 = "%" + std::to_string(registerAmount - 1);
                 ret += s2 + "\n";
             }
 
-            ansReg = "%" + std::to_string(registerAmount++);
-            nextOPisTrue = token[tokNumCounter + 1].tokNum == PLUS || token[tokNumCounter + 1].tokNum == MIN;
+            ansReg               = "%" + std::to_string(registerAmount++);
+            nextOPisTrue         = token[tokNumCounter + 1].tokNum == PLUS || token[tokNumCounter + 1].tokNum == MIN;
             oneBeforeInstruction = opToIR[nextOP];
             ret += addIndent() + ansReg + " = " + oneBeforeInstruction + " nsw i32 " + newNowVar + ", " + newS2 +"\n";
 
+            Regs.nowVar = ansReg;
             llirType[Regs.nowVar] = "i32";
 
         } else {
@@ -370,6 +372,7 @@ string Node::word() {
 string Node::eval() {
     string ret;
     string r1;
+    string len;
     string type;
     /*
      * regL
@@ -379,39 +382,46 @@ string Node::eval() {
 
     if (langMode == LLIR) {
         string opreg;
-        string regL = funCall("");
+        string regL  = funCall("");
         tokNumCounter++;
-        int op = token[tokNumCounter].tokNum;
-        string opStr = token[tokNumCounter].tokChar;
-        tokNumCounter++;
-        string regR = funCall("");
-        tokNumCounter++;
+        int    op    = token[tokNumCounter].tokNum;
+        string opStr = token[tokNumCounter++].tokChar;
+        string regR  = funCall("");
 
         if (regL[0] == '%') {
             // regL is register.
-            type = Regs.Reg[Regs.llirReg[regL]].len;
 
-            ret += addIndent() + "%" + std::to_string(registerAmount) + " = load " + Regs.Reg[Regs.llirReg[regL]].type + ", " + Regs.Reg[Regs.llirReg[regL]].type + "* " + regL + ", align " + type + "\n";
+            string loadedRegL = "%" + std::to_string(registerAmount);
 
-            Regs.Reg[regL].name = "%" + std::to_string(registerAmount);
-            regL = "%" + std::to_string(registerAmount++);
+            type              = Regs.Reg[Regs.llirReg[regL]].type;
+            len               = Regs.Reg[Regs.llirReg[regL]].len;
+
+            ret += addIndent() + loadedRegL + " = " + load(regL, type, len);
+
+            Regs.Reg[regL].name = loadedRegL;
+            regL                = "%" + std::to_string(registerAmount++);
+
         } else;
             // regL is not register.
 
         if (regR[0] == '%') {
             // regR is register.
-            type = typeSize[regType[regR]];
 
-            ret += addIndent() + "%" + std::to_string(registerAmount) + " = load " + regType[regR] + ", " + regType[regR] + "* " + regR + ", align " + type + "\n";
+            string loadedRegR = "%" + std::to_string(registerAmount);
 
-            regR = "%" + std::to_string(registerAmount++);
+            type              = Regs.Reg[Regs.llirReg[regR]].type;
+            len               = Regs.Reg[Regs.llirReg[regR]].len;
+
+            ret += addIndent() + loadedRegR + " = " + load(regL, type, len);
+
+            Regs.Reg[regR].name = loadedRegR;
+            regR                = "%" + std::to_string(registerAmount++);
+
         } else;
             // regR is not register.
 
-        r1 = "%" + std::to_string(registerAmount++);
-
-        opreg = opToIR[op];
-
+        r1                   = "%" + std::to_string(registerAmount);
+        opreg                = opToIR[op];
         oneBeforeInstruction = "icmp";
 
         ret += addIndent() + r1 + " = " + oneBeforeInstruction + " " + opreg + " i32 " + regL + ", " + regR + "\n";
