@@ -194,29 +194,23 @@ string Node::mulDiv() {
     string op;
     string r1;
     string loadRet;
-    int nextOP = token[tokNumCounter + 1].tokNum;
-    bool nextOPisTrue = nextOP == MUL || nextOP == DIV;
-
+    int    nextOP       = token[tokNumCounter + 1].tokNum;
+    bool   nextOPisTrue = nextOP == MUL || nextOP == DIV; 
 
     if (langMode == LLIR && nextOPisTrue) {
-        r1        = ret;
-        ret       = "";
+        r1  = ret;
+        ret = "";
 
         if (r1[0] == ' ') {
             ret += r1 + "\n";
-            Regs.nowVar = "%" + std::to_string(registerAmount-1);
-        }
-        else if (!isDigit(r1)) {
-            Regs.nowVar = r1;
-        }
-        else {
+        } else {
             Regs.nowVar = "%" + std::to_string(registerAmount++);
             ret += addIndent() + Regs.nowVar + " = " + load(r1, "i32", "4");
         }
     }
 
     while (nextOPisTrue) {
-        op     = token[tokNumCounter + 1].tokChar;
+        op = token[tokNumCounter + 1].tokChar;
         nextOP = token[tokNumCounter + 1].tokNum;
         tokNumCounter += 2;
 
@@ -246,32 +240,32 @@ string Node::mulDiv() {
             if (ret[0] != ' ')
                 Regs.nowVar = r1;
 
-            s2 = funCall("");
+            newNowVar = Regs.nowVar;
+            s2        = funCall("");
 
             if (s2[0] == '%') {
                 newS2 = "%" + std::to_string(registerAmount++);
                 ret += addIndent() + newS2 + " = " + load(s2, "i32", "4");
-            }  else if (!isDigit(s2)) {
+            } else if (!isDigit(s2)) {
                 newS2 = s2;
             } else {
-                newS2 = "%" + std::to_string(registerAmount-1);
+                newS2 = "%" + std::to_string(registerAmount - 1);
                 ret += s2 + "\n";
             }
 
-            newNowVar = Regs.nowVar;
-            ansReg = "%" + std::to_string(registerAmount++);
-            nextOPisTrue = token[tokNumCounter + 1].tokNum == MUL || token[tokNumCounter + 1].tokNum == DIV;
+            ansReg               = "%" + std::to_string(registerAmount++);
+            nextOPisTrue         = token[tokNumCounter + 1].tokNum == MUL || token[tokNumCounter + 1].tokNum == DIV;
             oneBeforeInstruction = opToIR[nextOP];
             ret += addIndent() + ansReg + " = " + oneBeforeInstruction + " nsw i32 " + newNowVar + ", " + newS2 +"\n";
+
             Regs.nowVar = ansReg;
             llirType[Regs.nowVar] = "i32";
 
         } else {
-            s2 = funCall("");
+            s2 = mulDiv();
             ret += op + s2;
         }
-
-    }        
+    }
 
     return loadRet + ret;
 }

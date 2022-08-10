@@ -353,15 +353,19 @@ string Node::sent() {
                     string loadR2;
                     string printfR;
                     string size = typeSize[regType[data]];
+                    string ofs;
 
                     if (data[0] == ' ') {
                         ret += data;
                         data = Regs.nowVar;
                         loadR1 = "%" + std::to_string(registerAmount++);
                         Regs.nowVar = loadR1;
+                        ofs = "\%d";
                     }
+                    else
+                        ofs = Regs.Reg[Regs.llirReg[data]].outputFormatSpecifier;
 
-                    strDefine += "@.str." + std::to_string(strAmount) +" = private unnamed_addr constant [3 x i8] c\"" + Regs.Reg[Regs.llirReg[data]].outputFormatSpecifier + "\\00\", align ";
+                    strDefine += "@.str." + std::to_string(strAmount) +" = private unnamed_addr constant [3 x i8] c\"" + ofs + "\\00\", align ";
                     if (size != "")
                         strDefine += "1\n";
                     else
