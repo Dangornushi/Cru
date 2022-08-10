@@ -542,7 +542,7 @@ string Node::sent() {
                 tokNumCounter++;
 
                 if (langMode == LLIR) {
-                    ret = addIndent() + loadR + " = " + load(var, "i32", "4");
+                    ret =  addIndent() + loadR + " = " + load(var, "i32", "4");
                     ret += addIndent() + storeR + " = add nsw i32 " + loadR + ", 1\n";
                     ret += addIndent() + "store i32 " + storeR + ", i32* " + var + ", align 4\n";
                 }
@@ -561,7 +561,7 @@ string Node::sent() {
                 tokNumCounter++;
 
                 if (langMode == LLIR) {
-                    ret = addIndent() + loadR + " = " + load(var, "i32", "4");
+                    ret =  addIndent() + loadR + " = " + load(var, "i32", "4");
                     ret += addIndent() + storeR + " = sub nsw i32 " + loadR + ", 1\n";
                     ret += addIndent() + "store i32 " + storeR + ", i32* " + var + ", align 4\n";
                 }
@@ -578,28 +578,23 @@ string Node::sent() {
                     if (langMode == LLIR) {
                         string data = funCall("");
                         string size = typeSize[regType[ret]];
+
                         if (Regs.llirReg.find(data) != Regs.llirReg.end()) {
-
-                            string type = Regs.Reg[Regs.llirReg[data]].type;
-                            string size = Regs.Reg[Regs.llirReg[data]].len;
-                            string data = addSub();
-                            string tmpReg =
-                                "%" + std::to_string(registerAmount);
-                            string mainReg = ret;
-
+                            string data    = addSub();
+                            string type    = Regs.Reg[Regs.llirReg[data]].type;
+                            string size    = Regs.Reg[Regs.llirReg[data]].len;
                             string tmp     = "%" + std::to_string(registerAmount);
-
+                            string mainReg = ret;
                             ret            = data;
+
                             ret += addIndent() + "store " + type + " " + tmp + ", " + type + "* " + mainReg + ", align " + size + "\n";
 
                             Regs.llirReg[tmp] = tmp;
-                            regType[tmp] = "i32";
+                            regType[tmp]      = "i32";
                             registerAmount++;
 
                         } else
-                            ret = addIndent() + "store " + regType[ret] + " " +
-                                data + ", " + regType[ret] + "* " + ret +
-                                ", align " + size + "\n";
+                            ret = addIndent() + "store " + regType[ret] + " " + data + ", " + regType[ret] + "* " + ret + ", align " + size + "\n";
                         tokNumCounter++;
                         expect(";");
                         tokNumCounter++;
