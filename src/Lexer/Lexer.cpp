@@ -138,6 +138,12 @@ vector<tokens> Lexer::lex(string fileData) {
             i += LEN_ENUM - 1;
             continue;
         }
+        /*===--- enum ---=== */
+        if (fileData.substr(i, LEN_LOOP) == "loop ") {
+            token.push_back({LOOP, "loop"});
+            i += LEN_LOOP - 1;
+            continue;
+        }
         if (fileData.substr(i, 1) == "\"") {
             string data;
             

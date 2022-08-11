@@ -167,6 +167,10 @@ void Main::cru() {
     else if (langMode == PYTHON) {
         runCode += "\nmain()";
     }
+    else if (langMode == LLIR) {
+
+        runCode += "declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1\n";
+    }
 
     write();
 

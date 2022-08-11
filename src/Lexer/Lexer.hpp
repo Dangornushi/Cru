@@ -15,6 +15,7 @@
 #define LEN_ENUM 5
 #define LEN_ELSE 5
 #define LEN_ELIF 5
+#define LEN_LOOP 5
 #define LEN_CALL 2
 #define LEN_ENTRY 4
 #define LEN_CLASS 6

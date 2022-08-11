@@ -185,15 +185,14 @@ string Node::sent() {
                     value = LLIRnowVar;
 
                     if (valueType == "i8") {
-                        registerName =
-                            "@.__const." + nowFuncName + "." + regSName;
+                        registerName = "@.__const." + nowFuncName + "." + regSName;
 
                         for (index = 1; index < value.size() - 1; index++)
                             tmp += value[index];
 
                         value               = tmp;
                         type                = "[" + std::to_string(index - 1) + " x i8]";
-                        strDefine           = registerName + " = private unnamed_addr constant " + type + " c\"" + value + "\", align 1\n";
+                        strDefine           += registerName + " = private unnamed_addr constant " + type + " c\"" + value + "\", align 1\n";
                         Regs.Reg[regSName]  = {regSName, registerName, type, std::to_string(index - 1), "\%s"};
                         Regs.registerAmount = registerAmount;
                         string r1           = "%" + std::to_string(registerAmount);
@@ -204,8 +203,6 @@ string Node::sent() {
 
                         registerAmount = Regs.registerAmount;
                         regSName       = r1;
-
-                        functionDefine += "declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1";
                     } else {
                         registerName       = "%" + regNum;
                         Regs.Reg[regSName] = {
@@ -303,29 +300,67 @@ string Node::sent() {
             string ret;
             string loopS;
             string sentS;
+            string brReg;
 
             expect("for");
             tokNumCounter++;
             loopS = loop();
-            if (langMode == PYTHON)
-                ret = addIndent() + "for " + loopS + ":\n";
-            if (langMode == CPP)
-                ret = addIndent() + "for (" + loopS + ") {\n";
+
             expect("{");
             tokNumCounter++;
+
             indent++;
             sentS = sent();
             indent--;
+
             expect("}");
             tokNumCounter++;
             expect(";");
             tokNumCounter++;
-            ret += "\n" + addIndent();
-            if (langMode == CPP)
-                ret += +"}";
+
+            switch(langMode) {
+                case PYTHON:
+                    ret = addIndent() + "for " + loopS + ":\n" + sentS;
+                    break;
+                case CPP:
+                    ret = addIndent() + "for (" + loopS + ") {\n" + sentS + "}";
+                    break;
+                case LLIR: {
+                    brReg = std::to_string(registerAmount++);
+                    ret += addIndent() + "br label %" + brReg + "\n\n";
+                    ret += "%" + brReg + "\n";
+                    ret += loopS;
+                    break;
+                }
+            }
 
             return ret + "\n" + sent();
-        } break;
+            break;
+        }
+        case LOOP: {
+
+            string loopSentS;
+            string loopEntry;
+
+            tokNumCounter++;
+            expect("{");
+            tokNumCounter++;
+
+            loopEntry = std::to_string(registerAmount++);
+
+            ret  = addIndent() + "br label %" + loopEntry + "\n";
+            ret += loopEntry + ":\n";
+            ret += sent();
+            ret += addIndent() + "br label %" + loopEntry + "\n";
+
+            expect("}");
+            tokNumCounter++;
+            expect(";");
+            tokNumCounter++;
+
+            return ret + sent();
+            break;
+        }
         case PUT: {
             string ret;
 
