@@ -2,5 +2,4 @@
 .DS_Store
 .clang-format
 compile_commands.json
-build/
 .vscode/

@@ -31,6 +31,8 @@ Node::Node(int langMode) {
         {"i8", "1"},
         {"i32", "4"},
         {"i64", "8"},
+        {"i32*", "8"},
+        {"i64*", "8"},
     };
     this->opToIR = {
         {EQEQ, "eq"},
@@ -96,6 +98,32 @@ void Node::expect(string str) {
         exit(1);
     }
 }
+
+string getVarName(Register Regs, string var) {
+    if (var[0] == '%')
+        var = Regs.llirReg[var];
+    return var;
+}
+
+// 所有権があるか判定
+bool Node::determinationOfOwnership(string var) {
+    var = getVarName(Regs, var);
+
+    if (!Regs.Reg[var].ownerShip && isDigit(var) && var[0] != '"'){
+        cout << "Err: moved var > " << var << endl;
+        exit(1);
+    }
+    return Regs.Reg[var].ownerShip;
+}
+
+void Node::drop(string var) {
+    Regs.Reg[getVarName(Regs, var)].ownerShip = false;
+}
+
+void Node::give(string var) {
+    Regs.Reg[getVarName(Regs, var)].ownerShip = true;
+}
+
 string Node::addIndent() {
     string ret = "";
     for (int i = 0; i < indent; i++)
@@ -386,12 +414,9 @@ string Node::eval() {
             // regL is register.
 
             string loadedRegL = "%" + std::to_string(registerAmount);
-
             type              = Regs.Reg[Regs.llirReg[regL]].type;
             len               = Regs.Reg[Regs.llirReg[regL]].len;
-
             ret += addIndent() + loadedRegL + " = " + load(regL, type, len);
-
             Regs.Reg[regL].name = loadedRegL;
             regL                = "%" + std::to_string(registerAmount++);
 
@@ -402,12 +427,9 @@ string Node::eval() {
             // regR is register.
 
             string loadedRegR = "%" + std::to_string(registerAmount);
-
             type              = Regs.Reg[Regs.llirReg[regR]].type;
             len               = Regs.Reg[Regs.llirReg[regR]].len;
-
             ret += addIndent() + loadedRegR + " = " + load(regL, type, len);
-
             Regs.Reg[regR].name = loadedRegR;
             regR                = "%" + std::to_string(registerAmount++);
 
@@ -453,11 +475,35 @@ string Node::loop() {
     iterate_2 = addSub();
     tokNumCounter++;
 
-    if (langMode == CPP)
-        ret = "int " + doValue + " = " + iterate_1 + "; " + doValue + " < " + iterate_2 + "; " +
-              doValue + "++";
-    if (langMode == PYTHON)
-        ret = doValue + " in range(" + iterate_2 + " - " + iterate_1 + ") ";
+    switch (langMode) {
+        case PYTHON:
+            ret = doValue + " in range(" + iterate_2 + " - " + iterate_1 + ") ";
+            break;
+        case CPP:
+            ret = "int " + doValue + " = " + iterate_1 + "; " + doValue + " < " + iterate_2 + "; " + doValue + "++";
+            break;
+        case LLIR: {
+            vector<tokens> tmpToken = token;
+            int tmpCounter = tokNumCounter;
+
+            tokNumCounter = 0;
+            token = {{LET, "let"}, {WORD, doValue}, {CORON, ":"}, {WORD, "int"}, {EQ, "<-"}, {WORD, iterate_1}, {SEMICORON, ";"}};
+
+            cout << iterate_1 << endl;
+
+            ret += let();
+            ret += addIndent() + "br label %" + std::to_string(registerAmount) + "\n\n";
+            ret += std::to_string(registerAmount++) + ":\n";
+            ret += addIndent() + "%" + std::to_string(registerAmount) + " = load i32, i32*%" + std::to_string(registerAmount-2) + ", align 4\n";
+            registerAmount++;
+            ret += addIndent() + "%" + std::to_string(registerAmount) + " = icmp sle i32 %" + std::to_string(registerAmount-1) + ", " + iterate_2 + "\n";
+
+            tokNumCounter = tmpCounter; 
+            token = tmpToken;
+            break;
+        }
+    }
+
     return ret;
 }
 

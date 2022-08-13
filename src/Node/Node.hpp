@@ -33,6 +33,8 @@ typedef struct {
     string type;
     string len;
     string outputFormatSpecifier;
+    bool ownerShip;
+    bool isMut;
 } Type;
 
 typedef struct {
@@ -85,6 +87,9 @@ struct Node {
     string                oneBeforeInstruction;
 
     void                  expect(string str);
+    bool                  determinationOfOwnership(string var);
+    void                  give(string var);
+    void                  drop(string var);
     string                addIndent();
     string                parse(vector<tokens> geToken);
 
@@ -97,6 +102,7 @@ struct Node {
     string                functionDefinition();
     string                funCall(string instanceName);
     string                sent();
+    string                let();
     string                expr();
     string                mulDiv();
     string                addSub();
