@@ -85,9 +85,10 @@ struct Node {
     string                loads;
     string                functionDefine;
     string                oneBeforeInstruction;
+    string                argmentLoadSentS;
 
     void                  expect(string str);
-    bool                  determinationOfOwnership(string var);
+    bool                  determinationOfOwnership(string *var);
     void                  give(string var);
     void                  drop(string var);
     string                addIndent();

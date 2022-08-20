@@ -28,8 +28,8 @@ string Node::functionDefinition() {
             tokNumCounter++; // (
             if (token[tokNumCounter].tokNum != RBRACKET)  {
                 argment = funcDefArgument();
+
                 argment.argMove = argMove("    ", argment, &registerAmount, &Regs);
-                registerAmount++;
             }
             expect(")");
             tokNumCounter++; // )
@@ -87,8 +87,7 @@ string Node::functionDefinition() {
                 break;
 
             case CPP:
-                ret += Type + " " + Name + " (" + argment.returnFunctionArgument + ") {\n" + Data + "\n}" +
-                       functionDefinition();
+                ret += Type + " " + Name + " (" + argment.returnFunctionArgument + ") {\n" + Data + "\n}" + functionDefinition();
                 break;
 
             case RUST: {
@@ -104,8 +103,9 @@ string Node::functionDefinition() {
                 string FDQ = std::to_string(funcDefQuantity++);
 
                 indent++;
-                ret +=
-                    "define " + Type + " @" + Name + "(" + argment.returnFunctionArgument + ") #" + FDQ +" {\nentry:\n" + argment.argMove + Data + "}\n\n";
+                ret += "define " + Type + " @" + Name + "(" + argment.returnFunctionArgument + ") #" + FDQ +" {\nentry:\n" + argment.argMove + Data;
+                if (Type == "void") ret += "    ret void\n";
+                ret += "}\n\n";
                 ret += functionDefinition();
                 indent--;
             } break;
@@ -220,8 +220,6 @@ string Node::functionDefinition() {
         Fsent = "pub fn " + Name + "(" + argment.returnFunctionArgument + ") : ";
 
         if (Type == "auto") {
-            cout << Fsent + Type << endl;
-            ;
             for (int i = 0; i < Fsent.length(); i++)
                 cout << " " << std::flush;
             cout << "^ Can't use 'auto' for function return value." << endl;

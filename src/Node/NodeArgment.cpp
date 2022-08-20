@@ -6,6 +6,8 @@ string Node::funcCallArtgment() {
 	string oneArgment;
     int nowWord;
 
+    argmentLoadSentS = "";
+
     if (token[tokNumCounter].tokNum == RBRACKET)
         return "";
 
@@ -31,6 +33,8 @@ string Node::funcCallArtgment() {
                 string type                       = Regs.Reg[Regs.llirReg[arg]].type;
                 string newReg                     = "%" + std::to_string(registerAmount);
                 string init_outputFormatSpecifier = Regs.Reg[Regs.llirReg[arg]].outputFormatSpecifier;
+                string argReg;
+
 
                 if (arg[0] == ' ') {
                     loads += arg;
@@ -40,16 +44,29 @@ string Node::funcCallArtgment() {
                     newReg = arg;
                     type = "i32";
                 } else {
-                    Type r1 = {"", arg, type, typeSize[type], init_outputFormatSpecifier};
-                    loads += load(addIndent(), r1, newReg);
+                    // TODO : del
                     oneBeforeInstruction = "load";
-                    registerAmount++;
+                    newReg = arg;
                 }
 
-                oneArgment += type + " noundef " + newReg;
+                if (newReg[0] == '@') {
+                    type = "i8*";
+                    newReg = Regs.llirReg[Regs.llirReg[arg]];
+                }
+
+                argReg = "%" + std::to_string(registerAmount++);
+
+                argmentLoadSentS += argReg + " = " + load(newReg, type, typeSize[type]) + addIndent();
+
+                oneArgment += type + " noundef " + argReg;
+
+                if (token[tokNumCounter+1].tokChar == ",")
+                    tokNumCounter++;
 
                 Regs.llirReg[newReg] = token[tokNumCounter].tokChar;
 
+                determinationOfOwnership(&newReg);
+                drop(newReg);
                 break;
             }
             default: {
@@ -60,7 +77,7 @@ string Node::funcCallArtgment() {
 
                 for (int i = 0; i < arg.length(); i++)
                     oneArgment.push_back(arg[i]);
-                tokNumCounter ++;
+                tokNumCounter++;
 
                 break;
             }
@@ -83,10 +100,13 @@ ReturnArgumentAndMove Node::funcDefArgument() {
     string valueName;
     string valueType;
     string OFS;
+    bool   mut;
+    int index = 0;
     ReturnArgumentAndMove argument;
 
 	while (1) {
         if (token[tokNumCounter - 1].tokNum == CANMA || token[tokNumCounter].tokNum == RBRACKET) {
+
             switch (langMode) {
                 case CPP:
                     argument.returnFunctionArgument += oneArgment.at(2) + " " + oneArgment.at(0);
@@ -95,22 +115,43 @@ ReturnArgumentAndMove Node::funcDefArgument() {
                     argument.returnFunctionArgument += oneArgment.at(0);
                     break;
                 case LLIR: {
-                    valueName = oneArgment[0];
-                    if (oneArgment[2] == "int") {
-                        valueType = "i32";
-                        OFS = "\%d";
+                    valueName = oneArgment[index];
+                    if (oneArgment[index] == "@mut") {
+                        mut = true;
+                        index++;
+                        valueName = oneArgment[index];
                     }
-                    llirType[valueName] = valueType;
 
+                    if (oneArgment[index+2] == "int") {
+                        valueType = "i32*";
+                        OFS       = "\%d";
+                    }
+                    else if (oneArgment[index+2] == "string") {
+                        valueType = "i8*";
+                        OFS       = "\%s";
+                    }
+
+                    llirType[valueName]                                = valueType;
                     Regs.llirReg["%" + std::to_string(registerAmount)] = valueName;
 
                     argument.returnFunctionArgument += valueType + " noundef %" + std::to_string(registerAmount);
 
-                    Regs.Reg[valueName] = {valueName, "%"+std::to_string(registerAmount), valueType, typeSize[valueType], OFS};
-                    registerAmount++;
+                    string regName = "%" + std::to_string(registerAmount++);
+                    string wordNameReg = "@.str." + valueName;
+
+                    Regs.Reg[valueName] = {valueName, regName, valueType, typeSize[valueType], OFS};
+                    Regs.Reg[valueName].isMut = mut;
+
+                    give(valueName);
+
+                    Regs.llirReg[regName] = wordNameReg;
+                    Regs.llirReg[wordNameReg] = valueName;
+
                     argument.argVars.push_back(Regs.Reg[valueName]);
+
+                    index = 0;
                     break;
-                } 
+                }
                 default:
                     break;
             }

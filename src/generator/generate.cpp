@@ -19,6 +19,10 @@ string load(string regName, string type, string typeSize) {
 	return "load " + type +", " + type + "* " + regName + ", align " + typeSize + "\n";
 }
 
+string loadPointer(string regName, string type, string typeSize) {
+	return "load " + type +"*, " + type + "** " + regName + ", align " + typeSize + "\n";
+}
+
 string store(string regName, string type, string typeSize, string varName) {
 	return "store " + type + " " + varName + ", " + type + "* " + regName  + ", align " + typeSize + "\n";
 }
@@ -46,19 +50,19 @@ string calc(int mode, reg r1, string r2, string r3) {
 string argMove(string indent, ReturnArgumentAndMove Argument, int *regCounter, Register *Regs ) {
 	string ret;
 	string r1;
-	int i =0;
+	int i = *regCounter;
 
 	for (auto argument : Argument.argVars) {
 		int &tmpI = *regCounter;
 		r1 = "%" + std::to_string(tmpI);
 		string r2;
+        Regs->llirReg[argument.name] = r1;
 		Regs->Reg[argument.name].regName = r1; 
 		Regs->llirReg[r1] = argument.name; 
 
 		ret += move(indent, Regs->Reg[argument.name], argument.regName);
-		*regCounter += ++i;
+		*regCounter = ++i;
 	}
-	*regCounter -= 1;
 	return ret;
 }
 

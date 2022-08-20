@@ -16,8 +16,7 @@ string Node::let() {
     bool   isMut    = false;
 
     expect("let");
-
-    tokNumCounter++;
+tokNumCounter++;
 
     isMut = False;
 
@@ -32,13 +31,15 @@ string Node::let() {
 
     tokNumCounter++;
 
-    expect(":");
+    if (token[tokNumCounter].tokNum == CORON) {
+        expect(":");
 
-    tokNumCounter++;
+        tokNumCounter++;
 
-    valueType = word() + valueType;
+        valueType = word() + valueType;
 
-    tokNumCounter++;
+        tokNumCounter++;
+    }
 
     if (token[tokNumCounter].tokChar == "<") {
         tokNumCounter++;
@@ -48,15 +49,13 @@ string Node::let() {
         tokNumCounter++;
     }
 
-    if (valueType.back() == '*') {
-        valueType = "i32*";
+    if ((token[tokNumCounter].tokNum == DOUBLEQUOT || valueType == "string") && langMode == LLIR) {
+        valueType = "string";
+        valueType = "i8"; 
     }
 
-    if (valueType == "int" && langMode == LLIR)
-        valueType = "i32";
-
-    else if (valueType == "string" && langMode == LLIR)
-        valueType = "i8";
+    else if ((valueType == "int" || valueType.back() == '*') && langMode == LLIR )
+        valueType = "i32*";
 
     llirType[valueName] = valueType;
 
@@ -109,8 +108,16 @@ string Node::let() {
         data = "\"" + token[tokNumCounter].tokChar + "\"";
         tokNumCounter++;
         expect("\"");
-    } else
+        valueType = "i8*";
+    } else {
         data = addSub();
+        if (Regs.Reg[Regs.llirReg[data]].type[Regs.Reg[Regs.llirReg[data]].type.size()-2] == '8')
+            valueType = "i8*";
+        if  (!isDigit(data))
+            valueType = "i32*";
+        else
+            valueType = Regs.Reg[Regs.llirReg[data]].type;
+    }
 
     tokNumCounter++;
     int hasType;
@@ -138,7 +145,7 @@ string Node::let() {
         case CPP: {
 
             // 確認
-            determinationOfOwnership(data);
+            determinationOfOwnership(&data);
 
             // 所有権の破棄
             drop(data);
@@ -176,89 +183,152 @@ string Node::let() {
         }
         case LLIR: {
             string regNum = std::to_string(registerAmount);
-            string size   = typeSize[valueType];
+            string size;
             string value;
 
             string tmp;
             string strName;
             string registerName;
             string type;
+            string outputFormatSpecifier;
             int    index;
 
-            if (LLIRnowVar == "")
+            if (data[0] == ' ') {
+                ret = data;
+                LLIRnowVar = Regs.nowVar;
+                registerAmount++;
+                regNum = std::to_string(registerAmount);
+                valueType = Regs.Reg["$__tmp_r"].type;
+            }
+            else if (LLIRnowVar == "")
                 LLIRnowVar = data;
-            else
+            else 
                 ret = addIndent() + data + "\n";
 
             value = LLIRnowVar;
 
+            if (value[0] == ' ') {
+                ret += value;
+                value = "%" + std::to_string(registerAmount++);
+            }
+
             // 確認
-            determinationOfOwnership(value);
+            determinationOfOwnership(&value);
 
             // 所有権の破棄
             drop(value);
 
-            if (valueType == "i8") {
-                registerName = "@.__const." + nowFuncName + "." + regSName;
+            if (valueType == "i8*") {
+                // string
 
-                for (index = 1; index < value.size() - 1; index++)
-                    tmp += value[index];
-
-                value = tmp;
-                type  = "[" + std::to_string(index - 1) + " x i8]";
-                strDefine += registerName + " = private unnamed_addr constant " + type + " c\"" + value + "\", align 1\n";
-                Regs.Reg[regSName]  = {regSName, registerName, type, std::to_string(index - 1), "\%s"};
-                Regs.registerAmount = registerAmount;
                 string r1           = "%" + std::to_string(registerAmount);
+                string loadReg      = "%" + std::to_string(registerAmount+1);
 
-                ret += strDef(addIndent(), &Regs, registerName, value);
+                size = typeSize[valueType];
+                outputFormatSpecifier = "\%s";
 
-                oneBeforeInstruction = "call";
-                registerAmount       = Regs.registerAmount;
-                regSName             = r1;
+                if (value[0] == '"') {
+
+                    registerName = "@.str." + regSName;
+
+                    for (index = 1; index < value.size() - 1; index++)
+                        tmp += value[index];
+
+                    value = tmp;
+
+                    type  = "[" + std::to_string(index) + " x i8]";
+                    strDefine += registerName + " = private unnamed_addr constant " + type + " c\"" + value + "\\00\", align 1\n";
+                    Regs.Reg[regSName]  = {regSName, registerName, type, std::to_string(index - 1), "\%s"};
+                    string len          = std::to_string(index - 1);
+
+                    ret += addIndent() + r1 + " = alloca i8*, align 8\n";
+                    ret += addIndent() + "store i8* getelementptr inbounds (" + type + ", " + type + "* " + registerName + ", i64 0, i64 0), i8** " + r1 + ", align 8\n";
+
+                    oneBeforeInstruction = "call";
+                }
+                else {
+                    registerAmount++;
+                    ret += addIndent() + r1 + " = alloca i8*, align 8\n";
+                    ret += addIndent() + loadReg + " = load " + valueType + ", " + valueType + "* " + Regs.llirReg[value] + ", align " + typeSize[valueType] + "\n";
+                    ret += addIndent() + "store " + valueType + "" + loadReg + ", " + valueType + "* " + r1  + ", align " + typeSize[valueType] + "\n";
+                    type = valueType;
+                    registerName = r1;
+                }
+
+                Regs.Reg[regSName].isMut   = isMut;
+                Regs.Reg[registerName].ownerShip = true;
+
+                Regs.llirReg[regSName] = r1;
+                Regs.llirReg[r1] = registerName;
+                Regs.llirReg[registerName] = regSName;
+
             } else {
+                // int
                 registerName       = "%" + regNum;
-                Regs.Reg[regSName] = {
+
+                string pointerReg        = "%" + std::to_string(registerAmount++);
+                string varReg            = "%" + std::to_string(registerAmount);
+
+                string pointerType       = valueType;
+
+                (valueType.size() == 4) ? valueType = valueType.substr(0, valueType.size() - 1) : "";
+
+                ret += addIndent() + pointerReg + " = alloca " + pointerType + ", align " + typeSize[pointerType] + "\n";
+                ret += addIndent() + varReg + " = alloca " + valueType + ", align " + typeSize[valueType] + "\n";
+                ret += addIndent() + "store " + valueType + "* " + varReg + ", " + pointerType + "* " + pointerReg + ", align " + typeSize[pointerType] + "\n";
+
+                if (value[0] == '%') {
+                    registerAmount++;
+                    string loadPointerReg1;
+                    string loadVariableReg1;
+                    string loadVariableReg2;
+
+                    
+                    if (oneBeforeInstruction == "add" || oneBeforeInstruction == "sub") {
+                        loadPointerReg1 = value;
+                    }
+                    else {
+                        loadPointerReg1  = "%" + std::to_string(registerAmount++);
+                        loadVariableReg1 = "%" + std::to_string(registerAmount++);
+
+                        ret += addIndent() + loadPointerReg1 + " = load " + valueType + "*, " + valueType + "** " + value + ", align " + typeSize[pointerType] + "\n";
+                        ret += addIndent() + loadVariableReg1 + " = load " + valueType + ", " + valueType + "* " + loadPointerReg1 + ", align " + typeSize[valueType] + "\n";
+                    }
+
+                    loadVariableReg2 = "%" + std::to_string(registerAmount);
+                    ret += addIndent() + loadVariableReg2 + " = load " + valueType + "*, " + valueType + "** " + pointerReg + ", align " + typeSize[pointerType] + "\n";
+
+                    value  = loadVariableReg1;
+                    varReg = loadVariableReg2;
+
+                    ret += addIndent() + "store " + valueType + " " + loadPointerReg1 + ", " + pointerType + " " + varReg + ", align " + typeSize[valueType] + "\n\n";
+
+                } else
+                    ret += addIndent() + "store " + valueType + " " + value + ", " + valueType + "* " + varReg + ", align " + typeSize[valueType] + "\n\n";
+
+                LLIRnowVar           = "";
+                oneBeforeInstruction = "store";
+                Regs.llirReg[registerName] = regSName;
+                Regs.Reg[regSName].isMut = isMut;
+                Regs.llirReg[regSName] = pointerReg;
+                Regs.llirReg[pointerReg] = registerName;
+                Regs.llirReg[registerName] = regSName;
+
+                valueType = pointerType;
+                size = std::to_string(index - 1);
+                outputFormatSpecifier = "\%d";
+            }
+
+            Regs.Reg[regSName] = {
                     regSName,
                     registerName,
                     valueType,
-                    typeSize[valueType],
-                    "\%d",
-                };
+                    size,
+                    outputFormatSpecifier,
+            };
 
-                Regs.Reg[regSName].isMut = isMut;
-
-                if (valueType.back() == '*') {
-                    string pointerType = valueType;
-                    string varType = valueType.substr(0, valueType.size()-1);
-                    string allocaReg = "%" + std::to_string(registerAmount++);
-                    string loadReg = "%" + std::to_string(registerAmount);
-
-                    ret  = addIndent() + allocaReg + " = alloca " + pointerType + ", align " + typeSize[pointerType] + "\n"; 
-                    ret += addIndent() + loadReg + " = load " + pointerType + ", " + pointerType + "* " + allocaReg + ", align " + typeSize[pointerType] + "\n";
-                    ret += addIndent() + "store " + varType + " " + value + ", " + pointerType + " " + loadReg + ", align " + typeSize[varType] + "\n";
-
-                } else if (value[0] == '%') {
-                    string tmp = value;
-                    string tmp2;
-
-                    tmp   = "%" + std::to_string(registerAmount - 1);
-                    value = "%" + std::to_string(registerAmount++);
-                    tmp2  = "%" + std::to_string(registerAmount);
-
-                    ret  = addIndent() + value + " = alloca " + valueType + "*, align " + typeSize[valueType] + "\n";
-                    ret += addIndent() + tmp2 + " = " + load(tmp, valueType, typeSize[valueType]);
-                    ret += addIndent() + "store " + valueType + " " + tmp2 + ", " + valueType + "* " + registerName + ", align " + typeSize[valueType] + "\n";
-
-                } else if (value[0] == ' ') {
-                    ret += value + move(addIndent(), Regs.Reg[regSName], Regs.nowVar);
-                } else
-                    ret += move(addIndent(), Regs.Reg[regSName], value);
-                oneBeforeInstruction = "store";
-            }
             registerAmount++;
 
-            Regs.llirReg[registerName] = regSName;
             LLIRnowVar                 = "";
 
             // 所有権を与える
@@ -434,10 +504,32 @@ string Node::sent() {
 
             expect("put");
             tokNumCounter++;
-            string data = funCall("");
+            string data = addSub();
             tokNumCounter++;
 
-            determinationOfOwnership(data);
+            if (data[0] == '&') {
+                // 借用
+                data = addSub();
+
+                string variable = Regs.llirReg[data];
+                string borrow = "&" + Regs.llirReg[data]; 
+
+                Regs.Reg[borrow] = Regs.Reg[variable];
+                Regs.Reg[borrow].ownerShip = true;
+                tokNumCounter++;
+                data = Regs.Reg[borrow].regName;
+                Regs.llirReg[data] = borrow;
+            }
+
+            if (data[0] == ' ') {
+                ret += data;
+                data = Regs.nowVar;
+                registerAmount++;
+            }
+
+            determinationOfOwnership(&data);
+
+            drop(data);
 
             switch (langMode) {
                 case PYTHON: {
@@ -454,7 +546,7 @@ string Node::sent() {
                     string size = typeSize[regType[data]];
                     string ofs;
 
-                    loadR1      = "%" + std::to_string(registerAmount++);
+                    loadR1 = "%" + std::to_string(registerAmount++);
 
                     if (data[0] == ' ') {
                         ret += data;
@@ -462,9 +554,9 @@ string Node::sent() {
                         Regs.nowVar = loadR1;
                         ofs         = "\%d";
                     } else
-                        ofs = Regs.Reg[Regs.llirReg[data]].outputFormatSpecifier;
+                        ofs = Regs.Reg[data].outputFormatSpecifier;
 
-                    strDefine += "@.str." + std::to_string(strAmount) +" = private unnamed_addr constant [3 x i8] c\"" + ofs + "\\00\", align ";
+                    strDefine += "@.str." + std::to_string(strAmount) +" = private unnamed_addr constant [4 x i8] c\"" + ofs + "\\0A\\00\", align ";
 
                     if (size != "")
                         strDefine += "1\n";
@@ -472,50 +564,61 @@ string Node::sent() {
                         strDefine += "4\n";
 
                     string dataN = Regs.llirReg[data];
-                    string type  = Regs.Reg[Regs.llirReg[data]].type;
-                    string typeSpecifier = Regs.Reg[Regs.llirReg[data]].outputFormatSpecifier;
+                    string type  = Regs.Reg[data].type;
+                    string typeSpecifier = Regs.Reg[data].outputFormatSpecifier;
                     string iNum;
 
-                    if (oneBeforeInstruction == "call") {
-                        ret += addIndent() + "%" + std::to_string(registerAmount - 1) + " = getelementptr inbounds " + type + ", " + type + "* " + Regs.llirReg[data] + ", i64 0, i64 0\n";
-                        loadR2 = "%" + std::to_string(registerAmount++);
-                        iNum = "i8*";
+                    if (oneBeforeInstruction == "call" && data[0] == '%') {
+                        ret += addIndent() + loadR1 + " = load " + type + "*, " + type + "** " + data + ", align " + typeSize[type] + "\n";
+                        iNum   = "i8*";
+                    }
+                    else if (oneBeforeInstruction == "call" && data[0] == '@') {
+                        ret += addIndent() + loadR1 + " = load i8*, i8** " + Regs.llirReg[data] + ", align " + typeSize["i8"] + "\n";
+                        iNum   = "i8*";
                     }
 
                     else if (loadR1.empty()) {
                         loadR1 = "%" + std::to_string(registerAmount++);
                         loadR2 = "%" + std::to_string(registerAmount++);
-                        iNum = Regs.Reg[dataN].type;
+                        iNum   = Regs.Reg[dataN].type;
                         ret += addIndent() + loadR1 + " = " + load(data, iNum, typeSize[iNum]);
-                    } 
+                    }
 
                     else {
-/*
-%4 = load i32*, i32** %2, align 8
-*/
                         ret += addIndent() + loadR1;
 
                         if (typeSpecifier == "\%s") {
-                            ret += " = getelementptr inbounds " + type + ", " + type + "* " + Regs.llirReg[data] + ", i64 0, i64 0";
-                            iNum = "i8*";
-                            
+                            ret += " = " + load(Regs.llirReg[data], type, typeSize[type]); 
+                            iNum = type;
                         } else {
-                            ret += " = " + load(data, Regs.Reg[dataN].type, typeSize[Regs.Reg[dataN].type]);
-                            iNum = "i32";
+                            string loadR2;
+                            string varType;
 
+                            varType = Regs.Reg[data].type;
+
+                            cout << data << endl;
+
+                            ret += " = " + load(Regs.llirReg[data], varType, typeSize[varType]);
+                            loadR2 = "%" + std::to_string(registerAmount++);
+
+                            if (varType.back() == '*')
+                                varType = Regs.Reg[data].type.substr(0, varType.size() - 1);
+
+                            ret += addIndent() + loadR2 + " = " + load(loadR1, varType, typeSize[varType]);
+                            loadR1 = loadR2;
+                            iNum = varType;
                         }
-                        ret += "\n";
                     }
 
                     if (Regs.Reg[Regs.llirReg[data]].isMut) { 
-                        string tmp = load(loadR1, iNum, typeSize[iNum]);//" = load " + iNum +", " + iNum + "* " + loadR1 + ", align " + typeSize[iNum] + "\n";;
+                        string tmp = load(loadR1, iNum, typeSize[iNum]);
                         loadR1 = "%" + std::to_string(registerAmount++);
-                        ret += addIndent() + loadR1 + tmp;
+                        ret += addIndent() + loadR1 + " = " + tmp;
                     }
 
                     loadR2 = "%" + std::to_string(registerAmount++);
 
-                    ret += addIndent() + loadR2 + " = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds ([3 x i8], [3 x i8]* @.str." + std::to_string(strAmount++) + ", i64 0, i64 0), " + iNum + " noundef " + loadR1 + ")\n";
+                    ret += addIndent() + loadR2 + " = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds ([4 x i8], [4 x i8]* @.str." + std::to_string(strAmount++) + ", i64 0, i64 0), " + iNum + " noundef " + loadR1 + ")\n";
 
                     if (putDefExists == False)
                         functionDefine += "declare i32 @printf(i8* noundef, ...) #" + std::to_string(funcDefQuantity++) + "\n";

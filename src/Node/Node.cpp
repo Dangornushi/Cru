@@ -31,6 +31,7 @@ Node::Node(int langMode) {
         {"i8", "1"},
         {"i32", "4"},
         {"i64", "8"},
+        {"i8*", "8"},
         {"i32*", "8"},
         {"i64*", "8"},
     };
@@ -102,22 +103,28 @@ void Node::expect(string str) {
 string getVarName(Register Regs, string var) {
     if (var[0] == '%')
         var = Regs.llirReg[var];
+    if (var[0] == '@')
+        var = Regs.Reg[Regs.llirReg[var]].name;
     return var;
 }
 
 // 所有権があるか判定
-bool Node::determinationOfOwnership(string var) {
-    var = getVarName(Regs, var);
+bool Node::determinationOfOwnership(string *var) {
+    *var = getVarName(Regs, *var);
 
-    if (!Regs.Reg[var].ownerShip && isDigit(var) && var[0] != '"'){
+    if (!Regs.Reg[*var].ownerShip && isDigit(*var) && (*var)[0] != '"'){
         cout << "Err: moved var > " << var << endl;
         exit(1);
     }
-    return Regs.Reg[var].ownerShip;
+    return Regs.Reg[*var].ownerShip;
 }
 
 void Node::drop(string var) {
-    Regs.Reg[getVarName(Regs, var)].ownerShip = false;
+    string varName = getVarName(Regs, var);
+    if (varName[0] != '&')
+        Regs.Reg[varName].ownerShip = false;
+    else 
+        Regs.Reg[varName].ownerShip = true;
 }
 
 void Node::give(string var) {
@@ -140,6 +147,7 @@ string Node::addSub() {
     string loadRet;
     int    nextOP       = token[tokNumCounter + 1].tokNum;
     bool   nextOPisTrue = nextOP == PLUS || nextOP == MIN;
+    string loadPointerReg;
 
     if (langMode == LLIR && nextOPisTrue) {
         r1  = ret;
@@ -148,8 +156,14 @@ string Node::addSub() {
         if (r1[0] == ' ') {
             ret += r1 + "\n";
         } else {
-            Regs.nowVar = "%" + std::to_string(registerAmount++);
-            ret += addIndent() + Regs.nowVar + " = " + load(r1, "i32", "4");
+            //Regs.nowVar
+            loadPointerReg = "%" + std::to_string(registerAmount++);
+            string loadVariableReg = "%" + std::to_string(registerAmount++);
+
+            ret += addIndent() + loadPointerReg + " = " + load(r1, Regs.Reg[Regs.llirReg[r1]].type, Regs.Reg[Regs.llirReg[r1]].len);
+            ret += addIndent() + loadVariableReg + " = " + load(loadPointerReg, "i32", "4");
+            Regs.nowVar = loadVariableReg;
+            Regs.Reg["$__tmp_r"].type = "i32*";
         }
     }
 
@@ -180,6 +194,7 @@ string Node::addSub() {
             string newS2;
             string newNowVar;
             string ansReg;
+            string loadReg;
 
             if (ret[0] != ' ')
                 Regs.nowVar = r1;
@@ -188,8 +203,12 @@ string Node::addSub() {
             s2        = mulDiv();
 
             if (s2[0] == '%') {
-                newS2 = "%" + std::to_string(registerAmount++);
-                ret += addIndent() + newS2 + " = " + load(s2, "i32", "4");
+                string pointerReg2  = "%" + std::to_string(registerAmount++);
+                string variableReg2 = "%" + std::to_string(registerAmount++);
+
+                ret += addIndent() + pointerReg2 + " = " + load(s2, "i32*", "8");
+                ret += addIndent() + variableReg2 + " = " + load(pointerReg2, "i32", "4");
+                newS2 = variableReg2;
             } else if (!isDigit(s2)) {
                 newS2 = s2;
             } else {
@@ -197,12 +216,13 @@ string Node::addSub() {
                 ret += s2 + "\n";
             }
 
-            ansReg               = "%" + std::to_string(registerAmount++);
+            ansReg               = "%" + std::to_string(registerAmount);
             nextOPisTrue         = token[tokNumCounter + 1].tokNum == PLUS || token[tokNumCounter + 1].tokNum == MIN;
             oneBeforeInstruction = opToIR[nextOP];
-            ret += addIndent() + ansReg + " = " + oneBeforeInstruction + " nsw i32 " + newNowVar + ", " + newS2 +"\n";
+            ret += addIndent() + ansReg + " = " + oneBeforeInstruction + " nsw i32 " + newNowVar + ", " + newS2 +"\n\n";
 
             Regs.nowVar = ansReg;
+            Regs.Reg[ansReg].type = "i32";
             llirType[Regs.nowVar] = "i32";
 
         } else {
@@ -315,7 +335,7 @@ string Node::funCall(string instanceName) {
 
         string argment = funcCallArtgment();
 
-        if (instanceName != "") {
+        if (instanceName != "" && langMode == CPP) {
             (argment == "") ? argment = "&" + instanceName : argment = "&" + instanceName + ", " + argment;
         } else {}
 
@@ -324,13 +344,10 @@ string Node::funCall(string instanceName) {
         if (langMode == LLIR) {
             string r1 = std::to_string(registerAmount++);
 
-            ret  = loads;
-
-            loads = "";
-
             oneBeforeInstruction = "call";
 
-            ret += addIndent() + "%" + r1 + " = " + oneBeforeInstruction + " i32 @" + funcName + "(" + argment + ")\n";
+            ret = argmentLoadSentS;
+            ret += "%" + r1 + " = " + oneBeforeInstruction + " i32 @" + funcName + "(" + argment + ")\n";
 
             Regs.nowVar = "%" + r1;
 
@@ -377,16 +394,16 @@ string Node::word() {
         expect(".");
         tokNumCounter++;
         ret = "self->" + token[tokNumCounter].tokChar;
-        //tokNumCounter++;
         return ret;
 
     }
-    if (langMode == LLIR && Regs.Reg.find(token[tokNumCounter].tokChar) != Regs.Reg.end()) {
+    if (langMode == LLIR && Regs.Reg[token[tokNumCounter].tokChar].regName != "") {
             ret = Regs.Reg[token[tokNumCounter].tokChar].regName;
     }
 
-    else
+    else {
         ret = token[tokNumCounter].tokChar;
+    }
 
     return ret;
 }
@@ -488,8 +505,6 @@ string Node::loop() {
 
             tokNumCounter = 0;
             token = {{LET, "let"}, {WORD, doValue}, {CORON, ":"}, {WORD, "int"}, {EQ, "<-"}, {WORD, iterate_1}, {SEMICORON, ";"}};
-
-            cout << iterate_1 << endl;
 
             ret += let();
             ret += addIndent() + "br label %" + std::to_string(registerAmount) + "\n\n";
