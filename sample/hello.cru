@@ -1,5 +1,11 @@
+fn sub(x: string): int {
+	put x;
+	return 0;
+}
+
 fn main(): int {
-	let hello: string <- "Hello, World!!";
-	put hello;
+	let hello: string <- "Hello, Dangkushi!!";
+	sub(hello);
+	put &hello;
 	return 0;
 }

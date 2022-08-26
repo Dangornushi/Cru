@@ -34,9 +34,15 @@ string execDir() {
         fprintf(stderr, "PID %d: proc_pidpath ();\n", pid);
         fprintf(stderr, "    %s\n", strerror(errno));
     } else;
+
     ret = pathSplit(string {pathbuf});
-    for (auto tmp : ret)
+
+    int size = ret.size();
+    for (auto tmp : ret) {
+        if (size == 1) break;
         dir += tmp + "/";
+        size--;
+    }
     return dir;
 }
 

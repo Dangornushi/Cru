@@ -41,6 +41,8 @@ string Node::functionDefinition() {
 
         Type = word();
 
+        Regs.Reg[nowFuncName].type = Type;
+
         string Fsent;
 
         Fsent = "fn " + Name + "(" + argment.returnFunctionArgument + ") : ";
@@ -102,12 +104,10 @@ string Node::functionDefinition() {
             case LLIR: {
                 string FDQ = std::to_string(funcDefQuantity++);
 
-                indent++;
                 ret += "define " + Type + " @" + Name + "(" + argment.returnFunctionArgument + ") #" + FDQ +" {\nentry:\n" + argment.argMove + Data;
                 if (Type == "void") ret += "    ret void\n";
                 ret += "}\n\n";
                 ret += functionDefinition();
-                indent--;
             } break;
 
             default:

@@ -18,9 +18,9 @@ using std::map;
 #define RUST 2
 #define LLIR 3
 
-
-int isDigit(string s1);
-string execDir();
+int            isDigit(string s1);
+string         execDir();
+string         variableType(int langMode, string typeName);
 vector<string> pathSplit(string p);
 
 extern int langMode;

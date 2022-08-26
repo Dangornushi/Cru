@@ -1,0 +1,7 @@
+fn main(): int {
+	let x: vec<string> <- ["Hello", "dangomushi", "warajimushi"];
+	put x[0];
+	put x[1];
+	put x[2];
+	return 0;
+}

@@ -25,10 +25,14 @@ string Node::funcCallArtgment() {
         //else 
         string arg;
 
+        if (token[tokNumCounter].tokNum == ADDRESS) {
+            tokNumCounter++;
+            arg                                   = addSub();
+            Regs.Reg[Regs.llirReg[arg]].ownerShip = true;
+        } else
+            arg = addSub();
         switch (langMode) {
             case LLIR: {
-                arg = addSub();
-
                 string argmentReg;
                 string type                       = Regs.Reg[Regs.llirReg[arg]].type;
                 string newReg                     = "%" + std::to_string(registerAmount);
@@ -37,8 +41,8 @@ string Node::funcCallArtgment() {
 
 
                 if (arg[0] == ' ') {
-                    loads += arg;
-                    type = llirType[Regs.nowVar];
+                    argmentLoadSentS += arg;
+                    type = Regs.Reg[Regs.nowVar].type;
                     newReg = Regs.nowVar;
                 } else if (!isDigit(arg)){
                     newReg = arg;
@@ -54,23 +58,28 @@ string Node::funcCallArtgment() {
                     newReg = Regs.llirReg[Regs.llirReg[arg]];
                 }
 
-                argReg = "%" + std::to_string(registerAmount++);
+                determinationOfOwnership(&newReg);
 
-                argmentLoadSentS += argReg + " = " + load(newReg, type, typeSize[type]) + addIndent();
+                drop(newReg);
 
-                oneArgment += type + " noundef " + argReg;
+                string allocaReg = "%" + std::to_string(registerAmount++);
+                string loadReg = "%" + std::to_string(registerAmount);
 
-                if (token[tokNumCounter+1].tokChar == ",")
-                    tokNumCounter++;
+                if (Regs.Reg[Regs.llirReg[newReg]].regName.empty() && type != "i8*") {
+                    argmentLoadSentS += addIndent() + allocaReg + " = alloca i32, align 8\n"; 
+                    argmentLoadSentS += addIndent() + "store  " + type.substr(0, type.size()-1) + " " + newReg + ", " + type + " "+ allocaReg + ", align 8\n"; 
+                }
+                else
+                    argmentLoadSentS += addIndent() + allocaReg + " = load "+ type +", " + type + "* " +newReg + " , align " + typeSize[type] + "\n";
+
+                oneArgment += type + " noundef " + allocaReg;
 
                 Regs.llirReg[newReg] = token[tokNumCounter].tokChar;
 
-                determinationOfOwnership(&newReg);
-                drop(newReg);
+                tokNumCounter++;
                 break;
             }
             default: {
-                arg = addSub();
 
                 if (token[tokNumCounter - 1].tokChar == "{")
                     arg = "{" + arg + "}";
@@ -107,31 +116,31 @@ ReturnArgumentAndMove Node::funcDefArgument() {
 	while (1) {
         if (token[tokNumCounter - 1].tokNum == CANMA || token[tokNumCounter].tokNum == RBRACKET) {
 
+            valueName = oneArgment.at(0);
+            valueType = oneArgment.at(2);
             switch (langMode) {
-                case CPP:
-                    argument.returnFunctionArgument += oneArgment.at(2) + " " + oneArgment.at(0);
+                case CPP: {
+                    OFS = typeToPrint[oneArgment[index+2]];
+                    argument.returnFunctionArgument += variableType(langMode, valueType) + " " + valueName;
+                    Regs.Reg[valueName] = {valueName, valueName, valueType, typeSize[valueType], OFS};
+                    Regs.Reg[valueName].isMut = mut;
                     break;
+                }
                 case PYTHON:
-                    argument.returnFunctionArgument += oneArgment.at(0);
+                    argument.returnFunctionArgument += valueName;
+                    Regs.Reg[valueName] = {valueName, valueName, valueType, typeSize[valueType], OFS};
+                    Regs.Reg[valueName].isMut = mut;
                     break;
                 case LLIR: {
-                    valueName = oneArgment[index];
                     if (oneArgment[index] == "@mut") {
                         mut = true;
                         index++;
                         valueName = oneArgment[index];
                     }
 
-                    if (oneArgment[index+2] == "int") {
-                        valueType = "i32*";
-                        OFS       = "\%d";
-                    }
-                    else if (oneArgment[index+2] == "string") {
-                        valueType = "i8*";
-                        OFS       = "\%s";
-                    }
+                    valueType = variableType(langMode, valueType) + "*";
+                    OFS = typeToOfs[oneArgment[index+2]];
 
-                    llirType[valueName]                                = valueType;
                     Regs.llirReg["%" + std::to_string(registerAmount)] = valueName;
 
                     argument.returnFunctionArgument += valueType + " noundef %" + std::to_string(registerAmount);
@@ -142,10 +151,9 @@ ReturnArgumentAndMove Node::funcDefArgument() {
                     Regs.Reg[valueName] = {valueName, regName, valueType, typeSize[valueType], OFS};
                     Regs.Reg[valueName].isMut = mut;
 
-                    give(valueName);
-
+                    Regs.llirReg[valueName] = regName;
                     Regs.llirReg[regName] = wordNameReg;
-                    Regs.llirReg[wordNameReg] = valueName;
+                    Regs.llirReg[wordNameReg] = regName;
 
                     argument.argVars.push_back(Regs.Reg[valueName]);
 

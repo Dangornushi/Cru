@@ -64,6 +64,8 @@ struct Node {
     map<string, string>   llirType;
     map<string, string>   regType;
     map<int, string>      opToIR;
+    map<string, string> typeToOfs;
+    map<string, string> typeToPrint;
 
     int                   tokNumCounter;
     int                   indent;
@@ -88,6 +90,7 @@ struct Node {
     string                argmentLoadSentS;
 
     void                  expect(string str);
+    bool                  varExist(string variable);
     bool                  determinationOfOwnership(string *var);
     void                  give(string var);
     void                  drop(string var);

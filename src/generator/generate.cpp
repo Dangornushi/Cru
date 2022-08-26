@@ -56,9 +56,11 @@ string argMove(string indent, ReturnArgumentAndMove Argument, int *regCounter, R
 		int &tmpI = *regCounter;
 		r1 = "%" + std::to_string(tmpI);
 		string r2;
+
         Regs->llirReg[argument.name] = r1;
-		Regs->Reg[argument.name].regName = r1; 
 		Regs->llirReg[r1] = argument.name; 
+		Regs->Reg[argument.name].regName = r1; 
+		Regs->Reg[argument.name].ownerShip = true;
 
 		ret += move(indent, Regs->Reg[argument.name], argument.regName);
 		*regCounter = ++i;
