@@ -13,20 +13,20 @@ def compile(filename, extension):
 
     print("Run LLVM IR:");
     # llvm ir
-    checkReturnCode(["cru", filename])
+    checkReturnCode(["../build/cru", filename])
     checkReturnCode(["lli", noExtension+".ll"])
     print("");
 
     print("Run clang:");
     # clang and run
-    checkReturnCode(["cru", "-C", filename])
+    checkReturnCode(["../build/cru", "-C", filename])
     checkReturnCode(["clang", "-o", noExtension, noExtension+".c"])
     checkReturnCode(["./" + noExtension])
     print("");
 
     print("Run python3:");
     # Pytohn run
-    checkReturnCode(["cru", "-P", filename])
+    checkReturnCode(["../build/cru", "-P", filename])
     checkReturnCode(["python3", noExtension+".py"])
     print("");
 
