@@ -168,8 +168,10 @@ string Node::let() {
             valueType = variableType(langMode, "string");
         if  (!isDigit(data))
             valueType = variableType(langMode, "int");
-        else
+        else {
             valueType = Regs.Reg[Regs.llirReg[data]].type;
+            valueType.pop_back();
+        }
     }
 
     tokNumCounter++;
@@ -186,14 +188,14 @@ string Node::let() {
         exit(0);
     } else;
 
+    // 確認
+    determinationOfOwnership(&data);
+
+    // 所有権の破棄
+    drop(data);
+
     switch (langMode) {
         case PYTHON: {
-
-            // 確認
-            determinationOfOwnership(&data);
-
-            // 所有権の破棄
-            drop(data);
 
             // 所有権を与える
             give(valueName);
@@ -215,12 +217,6 @@ string Node::let() {
         }
         case CPP: {
             string ofs;
-
-            // 確認
-            determinationOfOwnership(&data);
-
-            // 所有権の破棄
-            drop(data);
 
             // 所有権を与える
             give(valueName);
@@ -278,7 +274,6 @@ string Node::let() {
             if (data[0] == ' ') {
                 ret = data;
                 LLIRnowVar = Regs.nowVar;
-                registerAmount++;
                 valueType = Regs.Reg["$__tmp_r"].type;
             }
             else if (LLIRnowVar == "")
@@ -381,7 +376,8 @@ string Node::let() {
                     string loadVariableReg2;
 
                     
-                    if (oneBeforeInstruction == "add" || oneBeforeInstruction == "sub") {
+                    if (oneBeforeInstruction == "add" || oneBeforeInstruction == "sub" ||
+                            oneBeforeInstruction == "mul" || oneBeforeInstruction == "div") {
                         loadPointerReg1 = value;
                     }
                     else {
@@ -646,7 +642,6 @@ string Node::sent() {
                 string variable = Regs.llirReg[data];
                 string borrow = "&" + Regs.llirReg[data]; 
 
-                // Python は辞書系の実装をしていないのでここでprint際のデータが取得できない
                 Regs.Reg[borrow] = Regs.Reg[variable];
                 Regs.Reg[borrow].ownerShip = true;
                 tokNumCounter++;
@@ -654,11 +649,10 @@ string Node::sent() {
                 Regs.llirReg[borrow] = data;
                 ofs = Regs.Reg[borrow].outputFormatSpecifier;
             }
-            else;
-
-            registerAmount++;
+            else; 
 
             if (data[0] == ' ') {
+
                 ret += data;
                 data = Regs.nowVar;
                 Regs.nowVar = loadR1;
@@ -682,9 +676,10 @@ string Node::sent() {
                 if (langMode == LLIR) {
                     data = Regs.llirReg[data];
                     ofs  = Regs.Reg[data].outputFormatSpecifier;
-                } else {
+                } else if (ofs.empty())
+                    putSent += Regs.Reg["$__tmp_REG"].outputFormatSpecifier + data + ");\n";
+                else
                     putSent = ofs + data + ");\n";
-                }
             }
 
             determinationOfOwnership(&data);
@@ -711,7 +706,6 @@ string Node::sent() {
 
                     if (oneBeforeInstruction == "call" && data[0] == '%') {
                         iNum   = Regs.Reg[data].type;
-                        registerAmount--;
                     }
                     else if (oneBeforeInstruction == "call" && data[0] == '@') {
                         ret += addIndent() + loadR1 + " = load i8*, i8** " + Regs.llirReg[data] + ", align " + typeSize["i8"] + "\n";
@@ -720,14 +714,12 @@ string Node::sent() {
                     else if (type == "vec") {
                         iNum = "i8*"; 
                         ofs = "\%s";
-                        registerAmount--;
                     } 
 
                     else {
-                        ret += addIndent() + loadR1;
-
                         if (typeSpecifier == "\%s") {
-                            ret += " = " + load(Regs.llirReg[data], type, typeSize[type]); 
+                            loadR1 = "%" + std::to_string(registerAmount++);
+                            ret += addIndent() + loadR1 + " = " + load(Regs.llirReg[data], type, typeSize[type]); 
                             iNum = type;
                         } else {
                             string loadR2;
@@ -735,14 +727,18 @@ string Node::sent() {
 
                             varType = Regs.Reg[data].type;
 
-                            ret += " = " + load(Regs.llirReg[data], varType, typeSize[varType]);
-                            loadR2 = "%" + std::to_string(registerAmount++);
+                            loadR1 = data;
 
-                            if (varType.back() == '*')
+                            if (varType.back() == '*') {
+                                loadR1 = "%" + std::to_string(registerAmount++);
+                                ret += addIndent() + loadR1 + " = " + load(data, varType, typeSize[varType]);
+                                loadR2  = "%" + std::to_string(registerAmount++);
+
                                 varType = Regs.Reg[data].type.substr(0, varType.size() - 1);
 
-                            ret += addIndent() + loadR2 + " = " + load(loadR1, varType, typeSize[varType]);
-                            loadR1 = loadR2;
+                                ret += addIndent() + loadR2 + " = " + load(loadR1, varType, typeSize[varType]);
+                                loadR1 = loadR2;
+                            }
                             iNum = varType;
                         }
                     }
@@ -787,25 +783,6 @@ string Node::sent() {
 
             return ret + sent();
         } break;
-        case PRINT: {
-            string ret;
-
-            expect("print");
-            tokNumCounter++;
-            string data = addSub();
-            tokNumCounter++;
-            expect(";");
-            tokNumCounter++;
-
-            if (langMode == PYTHON) {
-                ret = addIndent() + "print(" + data + ")\n";
-            }
-            if (langMode == CPP) {
-                ret = addIndent() + "__CRU_Stringput(&" + data + ");\n";
-            }
-
-            return ret + sent();
-        } break;
         case RETURN: {
             string ret;
             
@@ -816,9 +793,10 @@ string Node::sent() {
                 case PYTHON:
                     ret = addIndent() + "return " + addSub();
                     break;
-                case CPP:
+                case CPP: {
                     ret = addIndent() + "return " + addSub() + ";";
                     break;
+                    }
                 case LLIR: {
                     string data = addSub();
                     string type = Regs.Reg[Regs.llirReg[data]].type;
@@ -852,7 +830,6 @@ string Node::sent() {
                 }
             }
 
-            // tokNumCounter++;
             tokNumCounter++;
             expect(";");
             tokNumCounter++;

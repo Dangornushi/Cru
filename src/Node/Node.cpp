@@ -121,7 +121,7 @@ string Node::parse(vector<tokens> geToken) {
 
 void Node::expect(string str) {
     if (token[tokNumCounter].tokChar != str) {
-        cout << "Err: " << token[tokNumCounter].tokChar << "But: " << str << endl;
+        cout << "Err word: '" << token[tokNumCounter].tokChar << "', Expected : '" << str << "'" << endl;
         exit(1);
     }
 }
@@ -195,12 +195,14 @@ string Node::addSub() {
             loadPointerReg = "%" + std::to_string(registerAmount++);
             string loadVariableReg = "%" + std::to_string(registerAmount++);
             string pointerType = Regs.Reg[Regs.llirReg[r1]].type;
-            string variableType = Regs.Reg[Regs.llirReg[r1]].type.substr(0, Regs.Reg[Regs.llirReg[r1]].type.size()-1);
+            string variablesType = Regs.Reg[Regs.llirReg[r1]].type;
+
+            variablesType.pop_back();
 
             ret += addIndent() + loadPointerReg + " = " + load(r1, pointerType, typeSize[pointerType]);
-            ret += addIndent() + loadVariableReg + " = " + load(loadPointerReg, variableType, "4");
+            ret += addIndent() + loadVariableReg + " = " + load(loadPointerReg, variablesType, "4");
             Regs.nowVar = loadVariableReg;
-            Regs.Reg["$__tmp_r"].type = "i32*";
+            Regs.Reg["$__tmp_r"].type = variableType(langMode, "int");//"i32";
         }
     }
 
@@ -259,12 +261,12 @@ string Node::addSub() {
             ret += addIndent() + ansReg + " = " + oneBeforeInstruction + " nsw i32 " + newNowVar + ", " + newS2 +"\n\n";
 
             Regs.nowVar = ansReg;
-            Regs.Reg[ansReg].type = "i32*";
+            Regs.Reg[ansReg].type = "i32";
 
         } else {
-            s2 = mulDiv();
-            ret += op + s2;
-            return ret;
+            ret += op + mulDiv();
+            nextOPisTrue         = token[tokNumCounter + 1].tokNum == PLUS || token[tokNumCounter + 1].tokNum == MIN;
+            Regs.Reg["$__tmp_REG"].outputFormatSpecifier = "printf(\"\%d\\n\", ";
         }
     }
 
@@ -294,12 +296,14 @@ string Node::mulDiv() {
             loadPointerReg = "%" + std::to_string(registerAmount++);
             string loadVariableReg = "%" + std::to_string(registerAmount++);
             string pointerType = Regs.Reg[Regs.llirReg[r1]].type;
-            string variableType = Regs.Reg[Regs.llirReg[r1]].type.substr(0, Regs.Reg[Regs.llirReg[r1]].type.size()-1);
+            string variablesType = Regs.Reg[Regs.llirReg[r1]].type;
+
+            variablesType.pop_back();
 
             ret += addIndent() + loadPointerReg + " = " + load(r1, pointerType, typeSize[pointerType]);
-            ret += addIndent() + loadVariableReg + " = " + load(loadPointerReg, variableType, "4");
+            ret += addIndent() + loadVariableReg + " = " + load(loadPointerReg, variablesType, "4");
             Regs.nowVar = loadVariableReg;
-            Regs.Reg["$__tmp_r"].type = "i32*";
+            Regs.Reg["$__tmp_r"].type = variableType(langMode, "int");//"i32";
         }
     }
 
@@ -358,12 +362,12 @@ string Node::mulDiv() {
             ret += addIndent() + ansReg + " = " + oneBeforeInstruction + " nsw i32 " + newNowVar + ", " + newS2 +"\n\n";
 
             Regs.nowVar = ansReg;
-            Regs.Reg[ansReg].type = "i32*";
+            Regs.Reg[ansReg].type = "i32";
 
         } else {
-            s2 = funCall("");
-            ret += op + s2;
-            return ret;
+            ret += op + funCall("");
+            nextOPisTrue         = token[tokNumCounter + 1].tokNum == PLUS || token[tokNumCounter + 1].tokNum == MIN;
+            Regs.Reg["$__tmp_REG"].outputFormatSpecifier = "printf(\"\%d\\n\", ";
         }
     }
 

@@ -91,6 +91,12 @@ LICENSE                -  LICENSE
 README.md              -  作品説明補足&作品の保存場所
 compile_commands.json  -  clang format setting
 build/                 -  プログラムファイル一式
+    CMakeCache.txt     -  cmake cache
+    CMakeFiles/        -  cmake settings
+    Makefile           -  Makefile
+    cmake_install.cmake-  cmake settings
+    cru*               <- プログラムファイル
+
 sample/                -  cru source sample
 src/                   -  ソースコード
 std.h                  -  CRU C コンパイルオプション用のヘッダファイル

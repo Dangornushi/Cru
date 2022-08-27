@@ -67,7 +67,14 @@ string Node::funcCallArtgment() {
 
                 if (Regs.Reg[Regs.llirReg[newReg]].regName.empty() && type != "i8*") {
                     argmentLoadSentS += addIndent() + allocaReg + " = alloca i32, align 8\n"; 
-                    argmentLoadSentS += addIndent() + "store  " + type.substr(0, type.size()-1) + " " + newReg + ", " + type + " "+ allocaReg + ", align 8\n"; 
+                    if (type[type.size()] == '*') {
+                        type = type.substr(0, type.size()-1);
+                        argmentLoadSentS += addIndent() + "store  " + type + " " + newReg + ", " + type + " "+ allocaReg + ", align 8\n"; 
+                    }
+                    else {
+                        argmentLoadSentS += addIndent() + "store  " + type + " " + newReg + ", " + type + "* "+ allocaReg + ", align 8\n"; 
+                        type += "*";
+                    }
                 }
                 else
                     argmentLoadSentS += addIndent() + allocaReg + " = load "+ type +", " + type + "* " +newReg + " , align " + typeSize[type] + "\n";
