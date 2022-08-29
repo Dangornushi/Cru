@@ -1,10 +1,14 @@
 
+def sub (a) :
+    print(a[0])
+    print(a[1])
+    print(a[2])
+    return 0
 def main () :
     x = ["Hello", "dangomushi", "warajimushi",]
-    print(x[0])
-    print(x[1])
-    print(x[2])
+    sub(x);
     return 0
+
 
 
 

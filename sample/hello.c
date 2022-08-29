@@ -77,10 +77,9 @@ int sub (__Cru_string x) {
     return 0;
 
 }int main () {
-    __Cru_string hello = {"Hello, Dangkushi!!"};
-    sub(hello);
-    __CRU_Stringput(&hello);
-    return 0;
+    __Cru_string a = {"Hello, Dangmushi!!"};
+    sub(a);
+    printf("Test, OK.\n");    return 0;
 
 }
 

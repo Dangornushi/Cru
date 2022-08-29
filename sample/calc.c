@@ -41,7 +41,7 @@ int __CRU_Strput(const char *__s1, int __size) {
 }
 
 int __CRU_Stringput(__Cru_string *__s1) {
-    printf("%s\n", (char *)__s1->S);
+    printf("%s\n", (char*)__s1->S);
     return 0;
 }
 
@@ -49,7 +49,8 @@ int __Cru_Vec_string_put(__Cru_Vec_string *__data) {
     size_t i = 0;
 
     printf("[ ");
-    for (; i < strlen(*__data->vD) - 1; i++) printf("%s, ", *__data->vD++);
+    for (; i < strlen(*__data->vD) - 1; i++)
+        printf("%s, ", *__data->vD++);
     printf("%s ]", *__data->vD);
     return 0;
 }
@@ -71,10 +72,13 @@ __Cru_Vec_string _Vec(char **s1) {
     return Cv;
 }
 
-int main() {
+int main () {
     int x = 12;
-    printf("%d\n", x + 2 + x + 4);
+    printf("%d\n", x+2+x+4);
     return 0;
+
 }
 
-int start(void) { return main(); }
+int start(void) {
+	return main();
+}

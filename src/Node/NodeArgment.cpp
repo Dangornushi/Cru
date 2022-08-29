@@ -39,7 +39,6 @@ string Node::funcCallArtgment() {
                 string init_outputFormatSpecifier = Regs.Reg[Regs.llirReg[arg]].outputFormatSpecifier;
                 string argReg;
 
-
                 if (arg[0] == ' ') {
                     argmentLoadSentS += arg;
                     type = Regs.Reg[Regs.nowVar].type;
@@ -53,7 +52,7 @@ string Node::funcCallArtgment() {
                     newReg = arg;
                 }
 
-                if (newReg[0] == '@') {
+                if (newReg[0] == '@' && type[0] != '[') {
                     type = "i8*";
                     newReg = Regs.llirReg[Regs.llirReg[arg]];
                 }
@@ -67,14 +66,21 @@ string Node::funcCallArtgment() {
 
                 if (Regs.Reg[Regs.llirReg[newReg]].regName.empty() && type != "i8*") {
                     argmentLoadSentS += addIndent() + allocaReg + " = alloca i32, align 8\n"; 
-                    if (type[type.size()] == '*') {
-                        type = type.substr(0, type.size()-1);
-                        argmentLoadSentS += addIndent() + "store  " + type + " " + newReg + ", " + type + " "+ allocaReg + ", align 8\n"; 
-                    }
-                    else {
+                    if (type[type.size()] != '*') {
                         argmentLoadSentS += addIndent() + "store  " + type + " " + newReg + ", " + type + "* "+ allocaReg + ", align 8\n"; 
                         type += "*";
                     }
+                    else {
+                        type = type.substr(0, type.size()-1);
+                        argmentLoadSentS += addIndent() + "store  " + type + " " + newReg + ", " + type + " "+ allocaReg + ", align 8\n"; 
+                    }
+                }
+                else if (type[0] == '[') {
+                    newReg = Regs.llirReg[Regs.llirReg[arg]];
+
+                    argmentLoadSentS += addIndent() + allocaReg + " = getelementptr inbounds " + type + ", " + type + "*" + newReg + ", i64 0, i64 0" + "\n";
+
+                    type = "i8**";
                 }
                 else
                     argmentLoadSentS += addIndent() + allocaReg + " = load "+ type +", " + type + "* " +newReg + " , align " + typeSize[type] + "\n";
@@ -139,7 +145,11 @@ ReturnArgumentAndMove Node::funcDefArgument() {
                     Regs.Reg[valueName].isMut = mut;
                     break;
                 case LLIR: {
-                    if (oneArgment[index] == "@mut") {
+                    if (valueType == "vec") {
+                        index+=4;
+                        valueType = valueType+ "&" + oneArgment[index++];
+                    }
+                    else if (oneArgment[index] == "@mut") {
                         mut = true;
                         index++;
                         valueName = oneArgment[index];

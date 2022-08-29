@@ -18,6 +18,12 @@ string parseQuort(const string s1) {
 
 string variableType(int langMode, string typeName) {
     string type;
+    map<string, string> varType = {
+        {"int", "i32"},
+        {"string", "i8"},
+        {"vec&string", "i8*"},
+    };
+
     switch(langMode) {
         case CPP: {
             (typeName == "string") ?
@@ -26,9 +32,7 @@ string variableType(int langMode, string typeName) {
             break;
         }
         case LLIR: {
-            (typeName == "int") ?
-                type = "i32" :
-                type = "i8";
+            type = varType[typeName];
             break;
         }
     }
@@ -53,6 +57,7 @@ Node::Node(int langMode) {
         {"i8*", "8"},
         {"i32*", "8"},
         {"i64*", "8"},
+        {"i8**", "8"},
     };
     this->opToIR = {
         {EQEQ, "eq"},
@@ -465,9 +470,29 @@ string Node::word() {
         if (langMode == LLIR) {
             string getelementptrReg = "%" + std::to_string(registerAmount++);
             string loadReg = "%" + std::to_string(registerAmount++);
+            string type = Regs.Reg[token[tokNumCounter].tokChar].type;
 
-            ret = addIndent() + getelementptrReg + " = getelementptr inbounds [3 x i8*], [3 x i8*]*" + Regs.llirReg[token[tokNumCounter].tokChar] + ", i64 0, i64 " + index + "\n";
-            ret += addIndent() + loadReg + " = " + load(getelementptrReg, "i8*", "8");
+            if (type[type.size()-1] == '*') {
+
+                string loadReg2;// = "%" + std::to_string(registerAmount++);
+                /*
+  %3 = load i8**, i8*** %2, align 8
+  %4 = getelementptr inbounds i8*, i8** %3, i64 0
+                 */
+                loadReg2 = loadReg;
+                loadReg = getelementptrReg;
+                getelementptrReg = loadReg2;
+
+                ret = addIndent() + loadReg + " = " + load(Regs.llirReg[token[tokNumCounter].tokChar], type, "8");
+                type = variableType(langMode, "vec&string");
+                ret += addIndent() + getelementptrReg + " = getelementptr inbounds " + type + ", " + type + "* " + loadReg + ", i64 " + index + "\n";
+                loadReg = "%" + std::to_string(registerAmount++);
+            }
+            else {
+                ret = addIndent() + getelementptrReg + " = getelementptr inbounds [3 x i8*], [3 x i8*]*" + Regs.llirReg[token[tokNumCounter].tokChar] + ", i64 0, i64 " + index + "\n";
+                type = "i8*";
+            }
+            ret += addIndent() + loadReg + " = " + load(getelementptrReg, type, "8");
 
             Regs.Reg[loadReg].type = "vec";
             Regs.nowVar = loadReg;

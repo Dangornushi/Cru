@@ -72,14 +72,18 @@ __Cru_Vec_string _Vec(char **s1) {
     return Cv;
 }
 
-int main () {
+int sub (vec a) {
+    printf("%s\n", a[0]);
+    printf("%s\n", a[1]);
+    printf("%s\n", a[2]);
+    return 0;
+
+}int main () {
     char **x;
     x[0] = "Hello";
 x[1] = "dangomushi";
 x[2] = "warajimushi";;
-    printf("%s\n", x[0]);
-    printf("%s\n", x[1]);
-    printf("%s\n", x[2]);
+    sub(x);
     return 0;
 
 }

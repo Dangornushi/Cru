@@ -4,8 +4,8 @@ fn sub(x: string): int {
 }
 
 fn main(): int {
-	let hello: string <- "Hello, Dangkushi!!";
-	sub(hello);
-	put &hello;
+	let a <- "Hello, Dangmushi!!";
+	sub(a);
+	put "Test, OK.";
 	return 0;
 }

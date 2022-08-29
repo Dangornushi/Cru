@@ -1,6 +1,6 @@
 @.str.0 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 4
-@.str.hello = private unnamed_addr constant [19 x i8] c"Hello, Dangkushi!!\00", align 1
-@.str.1 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 4
+@.str.a = private unnamed_addr constant [19 x i8] c"Hello, Dangmushi!!\00", align 1
+@.str.1 = private unnamed_addr constant [ 11 x i8 ] c"Test, OK.\0A\00", align 1
 
 define i32 @sub(i8* noundef %0) #1 {
 entry:
@@ -14,12 +14,11 @@ entry:
 define i32 @main() #2 {
 entry:
     %0 = alloca i8*, align 8
-    store i8* getelementptr inbounds ([19 x i8], [19 x i8]* @.str.hello, i64 0, i64 0), i8** %0, align 8
+    store i8* getelementptr inbounds ([19 x i8], [19 x i8]* @.str.a, i64 0, i64 0), i8** %0, align 8
         %1 = load i8*, i8** %0 , align 8
     %2 = call i32 @sub(i8* noundef %1)
 
-    %3 = load i8*, i8** %0, align 8
-    %4 = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i64 0, i64 0), i8* noundef %3)
+    %3 = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds ([ 11 x i8 ], [ 11 x i8 ]* @.str.1, i64 0, i64 0))
     ret i32 0
 }
 

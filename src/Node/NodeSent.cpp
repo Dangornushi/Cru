@@ -40,6 +40,12 @@ string Node::let() {
         tokNumCounter++;
     }
 
+    else if ((token[tokNumCounter].tokNum == DOUBLEQUOT || valueType == "string"))
+        valueType = variableType(langMode, "string") + "*";
+
+    else if (( valueType.back() == '*' || valueType == "int"))
+        valueType = variableType(langMode, "int") + "*";
+
     if (token[tokNumCounter].tokChar == "<") {
         tokNumCounter++;
         vecType = token[tokNumCounter].tokChar;
@@ -49,14 +55,10 @@ string Node::let() {
         tokNumCounter++;
     }
 
-    if ((token[tokNumCounter].tokNum == DOUBLEQUOT || valueType == "string") && langMode == LLIR) {
-        valueType = "i8*"; 
-    }
-
-    else if ((valueType == "int" || valueType.back() == '*') && langMode == LLIR )
-        valueType = "i32*";
 
     llirType[valueName] = valueType;
+
+    // TODO : ewfactoring
 
     // only define
     if (token[tokNumCounter].tokChar != "<-") {
@@ -126,26 +128,23 @@ string Node::let() {
                     strDefine += "@str." + std::to_string(strAmount) + " = private unnamed_addr constant [ " + std::to_string(index) + "x i8 ] c\"" + data + "\\00\", align 1\n";
                     arraySsents += "i8* getelementptr inbounds ([" + std::to_string(index) + " x i8], [" + std::to_string(index) + " x i8]* @str." + std::to_string(strAmount++) + ", i32 0, i32 0),";
                 }
-                else if (langMode == CPP) {
+                else if (langMode == CPP)
                    arraySsents += regSName + "[" + std::to_string(arrayIndex++) + "] = \"" + data + "\";\n";
-                }
-                else if (langMode == PYTHON) {
+                else if (langMode == PYTHON)
                     arraySsents += "\"" + data + "\", ";
-                }
 
                 string tmpVarName = "str." + regSName;
                 tokNumCounter++;
             }
+
             arraySsents.pop_back();
 
-            if (langMode==LLIR) {
-                strDefine += "@__const." + nowFuncName + "." + regSName + " = private unnamed_addr constant [" + std::to_string(words) + " x i8*] [";
-                strDefine += arraySsents;
-                strDefine += "], align 16\n";
-            }
-            else if (langMode == PYTHON) {
+            if (langMode==LLIR)
+                strDefine += "@__const." + nowFuncName + "." + regSName + " = private unnamed_addr constant [" + std::to_string(words) + " x i8*] [" + arraySsents + "], align 16\n";
+
+            else if (langMode == PYTHON)
                 arraySsents.substr(0, arraySsents.size()-1);
-            }
+
         index = words;
         expect("]");
     }
@@ -352,6 +351,8 @@ string Node::let() {
                 Regs.llirReg[regSName] = allocaReg;
                 Regs.llirReg[allocaReg] = registerName;
                 Regs.llirReg[registerName] = regSName;
+                Regs.Reg[registerName].ownerShip = true;
+                Regs.Reg[regSName].type = valueType;
             } else {
                 // int
                 registerName       = "%" + regNum;
@@ -419,7 +420,6 @@ string Node::let() {
                     outputFormatSpecifier,
             };
             Regs.Reg[regSName].ownerShip = true;
-
 
             registerAmount++;
 
@@ -659,11 +659,40 @@ string Node::sent() {
                 loadR1 = data;
                 if (langMode == LLIR)
                     ofs         = "\%d";
-                else {
+                else
                     putSent = "printf(\"\%d\", " + data + ");\n";
+
+            } else if (data[0] == '\"') {
+                data.erase(0, 1);
+                data.pop_back();
+
+                expect(";");
+                tokNumCounter++;
+
+                if (langMode == LLIR) {
+                    // llivm ir
+                    string typeArray  = "[ " + std::to_string(data.size() + 2) + " x i8 ]";
+                    string stringWord = data;
+
+                    data              = "@.str." + std::to_string(strAmount++);
+                    strDefine += data + " = private unnamed_addr constant " + typeArray + " c\"" + stringWord + "\\0A\\00\", align 1\n";
+                    ret += addIndent() + "%" + std::to_string(registerAmount++) + " = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds (" + typeArray + ", " + typeArray + "* " + data + ", i64 0, i64 0))\n";
+
+                    if (!putDefExists)
+                        functionDefine += "declare i32 @printf(i8* noundef, ...) #" + std::to_string(funcDefQuantity++) + "\n";
+                    putDefExists = True;
+
+                    return ret + sent();
                 }
-            }
-            else if (data.find("(") != string::npos){
+                ret += addIndent();
+                if (langMode == CPP) {
+                    ret += "printf(\""+ data + "\\n\");";     
+                    return ret + sent();
+                }
+                ret += "print(\""+ data + "\");";     
+                return ret + sent();
+
+            } else if (data.find("(") != string::npos) {
                 string noBracket;
                 putSent = "printf(\"\%d\\n\", " + data + ");";
                 for (auto i : data) {
@@ -671,8 +700,7 @@ string Node::sent() {
                     noBracket += i;
                 }
                 ofs  = Regs.Reg[Regs.llirReg[noBracket]].outputFormatSpecifier;
-            }
-            else {
+            } else {
                 if (langMode == LLIR) {
                     data = Regs.llirReg[data];
                     ofs  = Regs.Reg[data].outputFormatSpecifier;
